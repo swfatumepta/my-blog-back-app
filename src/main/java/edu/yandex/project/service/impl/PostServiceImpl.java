@@ -9,6 +9,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @RequiredArgsConstructor
 @Slf4j
@@ -19,10 +20,11 @@ public class PostServiceImpl implements PostService {
     private final PostMapper postMapper;
 
     @Override
+    @Transactional
     public PostPageDto findPosts(@NonNull PostPageRequestParameters parameters) {
         log.debug("PostServiceImpl::findPosts {} in", parameters);
         var postEntities = postRepository.findAll(parameters.search(), parameters.pageNumber(), parameters.pageSize());
-        int postCount = postRepository.getPostCount();
+        var postCount = postRepository.getPostCount();
         // count comment request
         // tags request (?)
         var postDtoList = postEntities.stream()

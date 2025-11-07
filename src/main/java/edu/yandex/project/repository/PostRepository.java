@@ -9,5 +9,5 @@ public interface PostRepository {
 
     List<PostEntity> findAll(@NonNull String titlePart, int offset, int limit);
 
-    int getPostCount();
+    Long getPostCount();
 }

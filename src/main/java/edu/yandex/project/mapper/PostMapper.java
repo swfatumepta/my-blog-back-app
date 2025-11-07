@@ -21,7 +21,6 @@ public class PostMapper {
                     .id(source.getId())
                     .title(source.getTitle())
                     .text(getPreparedText(source.getText()))
-                    .commentsCount(source.getCommentsCount())
                     .likesCount(source.getLikesCount());
         }
         var built = postDtoBuilder.build();
