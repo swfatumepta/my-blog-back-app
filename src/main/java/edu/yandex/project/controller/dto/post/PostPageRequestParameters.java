@@ -3,7 +3,9 @@ package edu.yandex.project.controller.dto.post;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
+import lombok.experimental.FieldNameConstants;
 
+@FieldNameConstants
 public record PostPageRequestParameters(@NotNull String search,
 
                                         @NotNull(message = "pageNumber is required")
