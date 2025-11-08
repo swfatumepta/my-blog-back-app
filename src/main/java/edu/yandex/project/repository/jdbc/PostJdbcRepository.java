@@ -84,10 +84,10 @@ public class PostJdbcRepository implements PostRepository {
                 RETURNING id, title, text, likes_count, created_at
                 """;
         var updated = Optional.ofNullable(jdbcTemplate.queryForObject(
-                sql, new PostEntityRowMapper(), toBeUpdated.getId(), toBeUpdated.getTitle(), toBeUpdated.getText()
+                sql, new PostEntityRowMapper(), toBeUpdated.getTitle(), toBeUpdated.getText(), toBeUpdated.getId()
         ));
         log.debug("PostJdbcRepository::update {} out", updated.orElse(null));
-        return Optional.empty();
+        return updated;
     }
 
     @Override

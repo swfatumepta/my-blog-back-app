@@ -12,6 +12,10 @@ java {
         languageVersion = JavaLanguageVersion.of(21)
     }
 }
+// без этого параметра, компилятор не распознает @PathVariable -> приходится явно указывать название @PathVariable("name")
+compileJava {
+    options.compilerArgs += ['-parameters']
+}
 
 repositories {
     mavenCentral()
