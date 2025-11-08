@@ -1,7 +1,9 @@
 package edu.yandex.project.service.impl;
 
+import edu.yandex.project.controller.dto.post.PostDto;
 import edu.yandex.project.controller.dto.post.PostPageDto;
 import edu.yandex.project.controller.dto.post.PostPageRequestParameters;
+import edu.yandex.project.exception.PostNotFoundException;
 import edu.yandex.project.factory.PostFactory;
 import edu.yandex.project.repository.PostRepository;
 import edu.yandex.project.service.PostService;
@@ -20,7 +22,7 @@ public class PostServiceImpl implements PostService {
     private final PostFactory postFactory;
 
     @Override
-    @Transactional
+    @Transactional(readOnly = true)
     public PostPageDto findPosts(@NonNull PostPageRequestParameters parameters) {
         log.debug("PostServiceImpl::findPosts {} in", parameters);
         var postEntities = postRepository.findAll(parameters.search(), parameters.pageNumber(), parameters.pageSize());
@@ -30,5 +32,15 @@ public class PostServiceImpl implements PostService {
         var postPageDto = postFactory.createPostPageDto(postEntities, parameters, postCount);
         log.debug("PostServiceImpl::findPosts {} out. Result: {}", parameters, postPageDto);
         return postPageDto;
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public PostDto findPost(@NonNull Long postId) {
+        log.debug("PostServiceImpl::findPost {} in", postId);
+        var postEntity = postRepository.findById(postId).orElseThrow(PostNotFoundException::new);
+        var postDto = postFactory.createPostDto(postEntity);
+        log.debug("PostServiceImpl::findPost {} out. Result: {}", postId, postEntity);
+        return postDto;
     }
 }

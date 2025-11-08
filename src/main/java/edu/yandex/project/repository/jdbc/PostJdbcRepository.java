@@ -12,6 +12,7 @@ import org.springframework.stereotype.Repository;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.List;
+import java.util.Optional;
 
 @RequiredArgsConstructor
 @Slf4j
@@ -45,6 +46,19 @@ public class PostJdbcRepository implements PostRepository {
         var count = jdbcTemplate.queryForObject(sql, Long.class);
         log.debug("PostJdbcRepository::getPostCount out. Result: {}", count);
         return count;
+    }
+
+    @Override
+    public Optional<PostEntity> findById(@NonNull Long postId) {
+        log.debug("PostJdbcRepository::findById {} in", postId);
+        var sql = """
+                SELECT id, title, text, likes_count, created_at
+                FROM posts
+                WHERE id = ?
+                """;
+        var fromDb = Optional.ofNullable(jdbcTemplate.queryForObject(sql, new PostEntityRowMapper(), postId));
+        log.debug("PostJdbcRepository::findById {} out. Result: {}", postId, fromDb.orElse(null));
+        return fromDb;
     }
 
     private static class PostEntityRowMapper implements RowMapper<PostEntity> {
