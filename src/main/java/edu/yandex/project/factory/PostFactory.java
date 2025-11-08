@@ -1,5 +1,6 @@
 package edu.yandex.project.factory;
 
+import edu.yandex.project.controller.dto.post.CreatePostDto;
 import edu.yandex.project.controller.dto.post.PostDto;
 import edu.yandex.project.controller.dto.post.PostPageDto;
 import edu.yandex.project.controller.dto.post.PostPageRequestParameters;
@@ -55,5 +56,15 @@ public class PostFactory {
             preparedString = preparedString.substring(0, textMaxSize - 1) + "...";
         }
         return preparedString;
+    }
+
+    public PostEntity createNewPostEntity(@NonNull CreatePostDto createPostDto) {
+        log.debug("PostMapper::createPostPageDto {} in", createPostDto);
+        var postEntity = PostEntity.builder()
+                .title(createPostDto.title())
+                .text(createPostDto.text())
+                .build();
+        log.debug("PostMapper::createPostPageDto {} out", postEntity);
+        return postEntity;
     }
 }

@@ -13,4 +13,6 @@ public interface PostRepository {
     Long getPostCount();
 
     Optional<PostEntity> findById(@NonNull Long postId);
+
+    PostEntity save(@NonNull PostEntity postEntity);
 }

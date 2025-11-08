@@ -61,6 +61,19 @@ public class PostJdbcRepository implements PostRepository {
         return fromDb;
     }
 
+    @Override
+    public PostEntity save(@NonNull PostEntity toBeSaved) {
+        log.debug("PostJdbcRepository::save {} in", toBeSaved);
+        var sql = """
+                INSERT INTO posts (title, text)
+                VALUES (?, ?)
+                RETURNING id, title, text, likes_count, created_at
+                """;
+        var saved = jdbcTemplate.queryForObject(sql, new PostEntityRowMapper(), toBeSaved.getTitle(), toBeSaved.getText());
+        log.debug("PostJdbcRepository::save {} out", saved);
+        return saved;
+    }
+
     private static class PostEntityRowMapper implements RowMapper<PostEntity> {
         @Override
         public PostEntity mapRow(@NonNull ResultSet rs, int rowNum) throws SQLException {

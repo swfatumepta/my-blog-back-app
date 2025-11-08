@@ -1,5 +1,6 @@
 package edu.yandex.project.service.impl;
 
+import edu.yandex.project.controller.dto.post.CreatePostDto;
 import edu.yandex.project.controller.dto.post.PostDto;
 import edu.yandex.project.controller.dto.post.PostPageDto;
 import edu.yandex.project.controller.dto.post.PostPageRequestParameters;
@@ -41,6 +42,18 @@ public class PostServiceImpl implements PostService {
         var postEntity = postRepository.findById(postId).orElseThrow(PostNotFoundException::new);
         var postDto = postFactory.createPostDto(postEntity);
         log.debug("PostServiceImpl::findPost {} out. Result: {}", postId, postEntity);
+        return postDto;
+    }
+
+    @Override
+    @Transactional
+    public PostDto createPost(@NonNull CreatePostDto createPostDto) {
+        log.debug("PostServiceImpl::createPost {} in", createPostDto);
+        var postEntity = postFactory.createNewPostEntity(createPostDto);
+
+        postEntity = postRepository.save(postEntity);
+        var postDto = postFactory.createPostDto(postEntity);
+        log.debug("PostServiceImpl::createPost {} out", postDto);
         return postDto;
     }
 }
