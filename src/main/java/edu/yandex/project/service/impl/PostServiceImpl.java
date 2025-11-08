@@ -1,9 +1,8 @@
 package edu.yandex.project.service.impl;
 
-import edu.yandex.project.controller.dto.post.CreatePostDto;
-import edu.yandex.project.controller.dto.post.PostDto;
-import edu.yandex.project.controller.dto.post.PostPageDto;
-import edu.yandex.project.controller.dto.post.PostPageRequestParameters;
+import edu.yandex.project.controller.dto.post.*;
+import edu.yandex.project.entity.PostEntity;
+import edu.yandex.project.exception.InconsistentPostDataException;
 import edu.yandex.project.exception.PostNotFoundException;
 import edu.yandex.project.exception.ProjectException;
 import edu.yandex.project.factory.PostFactory;
@@ -25,36 +24,51 @@ public class PostServiceImpl implements PostService {
 
     @Override
     @Transactional(readOnly = true)
-    public PostPageDto findPosts(@NonNull PostPageRequestParameters parameters) {
-        log.debug("PostServiceImpl::findPosts {} in", parameters);
+    public PostPageDto findAll(@NonNull PostPageRequestParameters parameters) {
+        log.debug("PostServiceImpl::findAll {} in", parameters);
         var postEntities = postRepository.findAll(parameters.search(), parameters.pageNumber(), parameters.pageSize());
         var postCount = postRepository.getPostCount();
         // count comment request
         // tags request (?)
         var postPageDto = postFactory.createPostPageDto(postEntities, parameters, postCount);
-        log.debug("PostServiceImpl::findPosts {} out. Result: {}", parameters, postPageDto);
+        log.debug("PostServiceImpl::findAll {} out. Result: {}", parameters, postPageDto);
         return postPageDto;
     }
 
     @Override
     @Transactional(readOnly = true)
-    public PostDto findPost(@NonNull Long postId) {
-        log.debug("PostServiceImpl::findPost {} in", postId);
+    public PostDto findOne(@NonNull Long postId) {
+        log.debug("PostServiceImpl::findOne {} in", postId);
         var postEntity = postRepository.findById(postId).orElseThrow(PostNotFoundException::new);
         var postDto = postFactory.createPostDto(postEntity);
-        log.debug("PostServiceImpl::findPost {} out. Result: {}", postId, postEntity);
+        log.debug("PostServiceImpl::findOne {} out. Result: {}", postId, postEntity);
         return postDto;
     }
 
     @Override
     @Transactional
-    public PostDto createPost(@NonNull CreatePostDto createPostDto) {
-        log.debug("PostServiceImpl::createPost {} in", createPostDto);
-        var postEntity = postFactory.createNewPostEntity(createPostDto);
+    public PostDto create(@NonNull CreatePostDto createPostDto) {
+        log.debug("PostServiceImpl::create {} in", createPostDto);
+        var postEntity = new PostEntity(createPostDto.title(), createPostDto.text());
 
         postEntity = postRepository.save(postEntity);
         var postDto = postFactory.createPostDto(postEntity);
-        log.debug("PostServiceImpl::createPost {} out", postDto);
+        log.debug("PostServiceImpl::create {} out", postDto);
+        return postDto;
+    }
+
+    @Override
+    @Transactional
+    public PostDto update(@NonNull Long postId, @NonNull UpdatePostDto updatePostDto) {
+        log.debug("PostServiceImpl::update {} -> {} in", postId, updatePostDto);
+        if (!postId.equals(updatePostDto.id())) {
+            throw new InconsistentPostDataException();
+        }
+        var postEntity = new PostEntity(updatePostDto.id(), updatePostDto.title(), updatePostDto.text());
+
+        postEntity = postRepository.update(postEntity).orElseThrow(PostNotFoundException::new);
+        var postDto = postFactory.createPostDto(postEntity);
+        log.debug("PostServiceImpl::update {} out", postDto);
         return postDto;
     }
 
@@ -69,14 +83,14 @@ public class PostServiceImpl implements PostService {
 
     @Override
     @Transactional
-    public void deletePost(@NonNull Long postId) {
-        log.debug("PostServiceImpl::deletePost {} in", postId);
+    public void delete(@NonNull Long postId) {
+        log.debug("PostServiceImpl::delete {} in", postId);
         int deletedRows = postRepository.deleteById(postId);
         if (deletedRows == 0) {
             throw new PostNotFoundException();
         } else if (deletedRows > 1) {
             throw new ProjectException();
         }
-        log.debug("PostServiceImpl::deletePost {} out", postId);
+        log.debug("PostServiceImpl::delete {} out", postId);
     }
 }

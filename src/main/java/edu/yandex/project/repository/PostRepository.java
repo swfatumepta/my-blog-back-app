@@ -14,7 +14,9 @@ public interface PostRepository {
 
     Optional<PostEntity> findById(@NonNull Long postId);
 
-    PostEntity save(@NonNull PostEntity postEntity);
+    PostEntity save(@NonNull PostEntity toBeSaved);
+
+    Optional<PostEntity> update(@NonNull PostEntity toBeUpdated);
 
     Optional<Integer> incrementLikesCountById(@NonNull Long postId);
 

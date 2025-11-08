@@ -1,9 +1,6 @@
 package edu.yandex.project.controller;
 
-import edu.yandex.project.controller.dto.post.CreatePostDto;
-import edu.yandex.project.controller.dto.post.PostDto;
-import edu.yandex.project.controller.dto.post.PostPageDto;
-import edu.yandex.project.controller.dto.post.PostPageRequestParameters;
+import edu.yandex.project.controller.dto.post.*;
 import edu.yandex.project.service.PostService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -23,7 +20,7 @@ public class PostController {
     @GetMapping
     public ResponseEntity<PostPageDto> getPosts(@Valid PostPageRequestParameters requestParameters) {
         log.info("PostController::getPosts {} begins", requestParameters);
-        var response = ResponseEntity.ok(postService.findPosts(requestParameters));
+        var response = ResponseEntity.ok(postService.findAll(requestParameters));
         log.info("PostController::getPosts {} ends. Result: {}", requestParameters, response.getBody());
         return response;
     }
@@ -31,7 +28,7 @@ public class PostController {
     @GetMapping("/{postId}")
     public ResponseEntity<PostDto> getPost(@PathVariable Long postId) {
         log.info("PostController::getPost {} begins", postId);
-        var response = ResponseEntity.ok(postService.findPost(postId));
+        var response = ResponseEntity.ok(postService.findOne(postId));
         log.info("PostController::getPost {} ends. Result: {}", postId, response.getBody());
         return response;
     }
@@ -39,8 +36,17 @@ public class PostController {
     @PostMapping
     public ResponseEntity<PostDto> createPost(@RequestBody @Valid CreatePostDto createPostDto) {
         log.info("PostController::createPost {} begins", createPostDto);
-        var response = new ResponseEntity<>(postService.createPost(createPostDto), HttpStatus.CREATED);
+        var response = new ResponseEntity<>(postService.create(createPostDto), HttpStatus.CREATED);
         log.info("PostController::createPost {} ends. Result: {}", createPostDto, response.getBody());
+        return response;
+    }
+
+    @PutMapping("/{postId}")
+    public ResponseEntity<PostDto> updatePost(@PathVariable Long postId,
+                                              @RequestBody @Valid UpdatePostDto updatePostDto) {
+        log.info("PostController::updatePost {} -> {} begins", postId, updatePostDto);
+        var response = ResponseEntity.ok(postService.update(postId, updatePostDto));
+        log.info("PostController::updatePost {} -> {} ends. Result: {}", postId, updatePostDto, response.getBody());
         return response;
     }
 
@@ -55,7 +61,7 @@ public class PostController {
     @DeleteMapping("/{postId}")
     public ResponseEntity<Void> deletePost(@PathVariable Long postId) {
         log.info("PostController::deletePost {} begins", postId);
-        postService.deletePost(postId);
+        postService.delete(postId);
         log.info("PostController::deletePost {} ends", postId);
         return ResponseEntity.ok().build();
     }

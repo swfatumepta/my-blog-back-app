@@ -19,4 +19,15 @@ public class PostEntity {
     private String text;
     private Integer likesCount;
     private LocalDateTime createdAt;
+
+    public PostEntity(String title, String text) {
+        this.title = title;
+        this.text = text;
+    }
+
+    public PostEntity(Long id, String title, String text) {
+        this.id = id;
+        this.title = title;
+        this.text = text;
+    }
 }

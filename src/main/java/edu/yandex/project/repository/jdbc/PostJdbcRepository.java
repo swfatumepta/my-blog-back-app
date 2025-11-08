@@ -75,6 +75,22 @@ public class PostJdbcRepository implements PostRepository {
     }
 
     @Override
+    public Optional<PostEntity> update(@NonNull PostEntity toBeUpdated) {
+        log.debug("PostJdbcRepository::update {} in", toBeUpdated);
+        var sql = """
+                UPDATE posts
+                SET title = ?, text = ?
+                WHERE id = ?
+                RETURNING id, title, text, likes_count, created_at
+                """;
+        var updated = Optional.ofNullable(jdbcTemplate.queryForObject(
+                sql, new PostEntityRowMapper(), toBeUpdated.getId(), toBeUpdated.getTitle(), toBeUpdated.getText()
+        ));
+        log.debug("PostJdbcRepository::update {} out", updated.orElse(null));
+        return Optional.empty();
+    }
+
+    @Override
     public Optional<Integer> incrementLikesCountById(@NonNull Long postId) {
         log.debug("PostJdbcRepository::incrementLikesCountById {} in", postId);
         var sql = """
