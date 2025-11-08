@@ -4,7 +4,6 @@ import edu.yandex.project.controller.dto.post.CreatePostDto;
 import edu.yandex.project.controller.dto.post.PostDto;
 import edu.yandex.project.controller.dto.post.PostPageDto;
 import edu.yandex.project.controller.dto.post.PostPageRequestParameters;
-import jakarta.validation.Valid;
 import org.springframework.lang.NonNull;
 
 public interface PostService {
@@ -14,4 +13,6 @@ public interface PostService {
     PostDto findPost(@NonNull Long postId);
 
     PostDto createPost(@NonNull CreatePostDto createPostDto);
+
+    Integer addLike(@NonNull Long postId);
 }

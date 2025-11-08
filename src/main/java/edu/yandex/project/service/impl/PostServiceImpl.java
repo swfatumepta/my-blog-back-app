@@ -56,4 +56,13 @@ public class PostServiceImpl implements PostService {
         log.debug("PostServiceImpl::createPost {} out", postDto);
         return postDto;
     }
+
+    @Override
+    @Transactional
+    public Integer addLike(@NonNull Long postId) {
+        log.debug("PostServiceImpl::addLike {} in", postId);
+        var likesCount = postRepository.incrementLikesCountById(postId).orElseThrow(PostNotFoundException::new);
+        log.debug("PostServiceImpl::addLike {} out. Total: {}", postId, likesCount);
+        return likesCount;
+    }
 }

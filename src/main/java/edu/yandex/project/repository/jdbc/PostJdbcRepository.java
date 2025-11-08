@@ -74,6 +74,20 @@ public class PostJdbcRepository implements PostRepository {
         return saved;
     }
 
+    @Override
+    public Optional<Integer> incrementLikesCountById(@NonNull Long postId) {
+        log.debug("PostJdbcRepository::incrementLikesCountById {} in", postId);
+        var sql = """
+                UPDATE posts
+                SET likes_count = likes_count + 1
+                WHERE id = ?
+                RETURNING likes_count
+                """;
+        var likesTotal = Optional.ofNullable(jdbcTemplate.queryForObject(sql, Integer.class, postId));
+        log.debug("PostJdbcRepository::incrementLikesCountById {} out. Result: {}", postId, likesTotal.orElse(null));
+        return likesTotal;
+    }
+
     private static class PostEntityRowMapper implements RowMapper<PostEntity> {
         @Override
         public PostEntity mapRow(@NonNull ResultSet rs, int rowNum) throws SQLException {

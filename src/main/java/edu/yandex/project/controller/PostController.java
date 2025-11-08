@@ -43,4 +43,12 @@ public class PostController {
         log.info("PostController::createPost {} ends. Result: {}", createPostDto, response.getBody());
         return response;
     }
+
+    @PostMapping("/{postId}/likes")
+    public ResponseEntity<Integer> addPostLike(@PathVariable Long postId) {
+        log.info("PostController::addPostLike {} begins", postId);
+        var response = ResponseEntity.ok(postService.addLike(postId));
+        log.info("PostController::addPostLike {} ends. Result: {}", postId, response.getBody());
+        return response;
+    }
 }
