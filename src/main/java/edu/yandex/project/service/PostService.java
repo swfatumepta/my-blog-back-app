@@ -15,4 +15,6 @@ public interface PostService {
     PostDto createPost(@NonNull CreatePostDto createPostDto);
 
     Integer addLike(@NonNull Long postId);
+
+    void deletePost(@NonNull Long postId);
 }

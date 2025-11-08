@@ -5,6 +5,7 @@ import edu.yandex.project.controller.dto.post.PostDto;
 import edu.yandex.project.controller.dto.post.PostPageDto;
 import edu.yandex.project.controller.dto.post.PostPageRequestParameters;
 import edu.yandex.project.exception.PostNotFoundException;
+import edu.yandex.project.exception.ProjectException;
 import edu.yandex.project.factory.PostFactory;
 import edu.yandex.project.repository.PostRepository;
 import edu.yandex.project.service.PostService;
@@ -64,5 +65,18 @@ public class PostServiceImpl implements PostService {
         var likesCount = postRepository.incrementLikesCountById(postId).orElseThrow(PostNotFoundException::new);
         log.debug("PostServiceImpl::addLike {} out. Total: {}", postId, likesCount);
         return likesCount;
+    }
+
+    @Override
+    @Transactional
+    public void deletePost(@NonNull Long postId) {
+        log.debug("PostServiceImpl::deletePost {} in", postId);
+        int deletedRows = postRepository.deleteById(postId);
+        if (deletedRows == 0) {
+            throw new PostNotFoundException();
+        } else if (deletedRows > 1) {
+            throw new ProjectException();
+        }
+        log.debug("PostServiceImpl::deletePost {} out", postId);
     }
 }

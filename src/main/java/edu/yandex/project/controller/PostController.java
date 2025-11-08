@@ -51,4 +51,12 @@ public class PostController {
         log.info("PostController::addPostLike {} ends. Result: {}", postId, response.getBody());
         return response;
     }
+
+    @DeleteMapping("/{postId}")
+    public ResponseEntity<Void> deletePost(@PathVariable Long postId) {
+        log.info("PostController::deletePost {} begins", postId);
+        postService.deletePost(postId);
+        log.info("PostController::deletePost {} ends", postId);
+        return ResponseEntity.ok().build();
+    }
 }

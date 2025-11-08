@@ -17,4 +17,6 @@ public interface PostRepository {
     PostEntity save(@NonNull PostEntity postEntity);
 
     Optional<Integer> incrementLikesCountById(@NonNull Long postId);
+
+    int deleteById(@NonNull Long postId);
 }

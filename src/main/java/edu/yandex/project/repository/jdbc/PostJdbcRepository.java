@@ -88,6 +88,15 @@ public class PostJdbcRepository implements PostRepository {
         return likesTotal;
     }
 
+    @Override
+    public int deleteById(@NonNull Long postId) {
+        log.debug("PostJdbcRepository::deleteById {} in", postId);
+        var sql = "DELETE FROM posts WHERE id = ?";
+        var deletedTotal = jdbcTemplate.update(sql, postId);
+        log.debug("PostJdbcRepository::deleteById {} out. Number of deleted rows: {}", postId, deletedTotal);
+        return deletedTotal;
+    }
+
     private static class PostEntityRowMapper implements RowMapper<PostEntity> {
         @Override
         public PostEntity mapRow(@NonNull ResultSet rs, int rowNum) throws SQLException {
