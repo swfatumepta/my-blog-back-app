@@ -33,8 +33,8 @@ public class DataSourceConfig {
     @Bean
     public SpringLiquibase liquibase(DataSource dataSource,
                                      @Value("${spring.liquibase.change-log}") String changeLog,
-                                     @Value("${spring.liquibase.drop-first}") Boolean dropFirst,
-                                     @Value("${spring.liquibase.enabled}") Boolean enabled) {
+                                     @Value("${spring.liquibase.drop-first:false}") Boolean dropFirst,
+                                     @Value("${spring.liquibase.enabled:true}") Boolean enabled) {
         var liquibase = new SpringLiquibase();
         liquibase.setDataSource(dataSource);
         liquibase.setChangeLog(changeLog);

@@ -10,7 +10,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class PostMapper {
 
-    @Value("${post.text.size.max}")
+    @Value("${post.text.size.max:128}")
     private Integer textMaxSize;
 
     public PostDto toPostDto(PostEntity source) {
