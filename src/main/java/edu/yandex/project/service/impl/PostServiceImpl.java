@@ -2,7 +2,7 @@ package edu.yandex.project.service.impl;
 
 import edu.yandex.project.controller.dto.post.PostPageDto;
 import edu.yandex.project.controller.dto.post.PostPageRequestParameters;
-import edu.yandex.project.mapper.PostMapper;
+import edu.yandex.project.factory.PostFactory;
 import edu.yandex.project.repository.PostRepository;
 import edu.yandex.project.service.PostService;
 import lombok.RequiredArgsConstructor;
@@ -17,7 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class PostServiceImpl implements PostService {
 
     private final PostRepository postRepository;
-    private final PostMapper postMapper;
+    private final PostFactory postFactory;
 
     @Override
     @Transactional
@@ -27,14 +27,7 @@ public class PostServiceImpl implements PostService {
         var postCount = postRepository.getPostCount();
         // count comment request
         // tags request (?)
-        var postDtoList = postEntities.stream()
-                .map(postMapper::toPostDto)
-                .toList();
-        var postPageDto = PostPageDto.builder()
-                .posts(postDtoList)
-                .hasPrev(parameters.pageNumber() > 0)
-                .hasNext(parameters.pageSize() + parameters.pageNumber() < postCount)
-                .build();
+        var postPageDto = postFactory.createPostPageDto(postEntities, parameters, postCount);
         log.debug("PostServiceImpl::findPosts {} out. Result: {}", parameters, postPageDto);
         return postPageDto;
     }
