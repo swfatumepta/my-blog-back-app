@@ -89,11 +89,16 @@ public class PostJdbcRepository implements PostRepository {
                 WHERE id = ?
                 RETURNING id, title, text, likes_count, created_at
                 """;
-        var updated = Optional.ofNullable(jdbcTemplate.queryForObject(
-                sql, new PostEntityRowMapper(), toBeUpdated.getTitle(), toBeUpdated.getText(), toBeUpdated.getId()
-        ));
-        log.debug("PostJdbcRepository::update {} out", updated.orElse(null));
-        return updated;
+        PostEntity updated;
+        try {
+            updated = jdbcTemplate.queryForObject(
+                    sql, new PostEntityRowMapper(), toBeUpdated.getTitle(), toBeUpdated.getText(), toBeUpdated.getId()
+            );
+        } catch (EmptyResultDataAccessException exc) {
+            updated = null;
+        }
+        log.debug("PostJdbcRepository::update {} out", updated);
+        return Optional.ofNullable(updated);
     }
 
     @Override
@@ -105,9 +110,14 @@ public class PostJdbcRepository implements PostRepository {
                 WHERE id = ?
                 RETURNING likes_count
                 """;
-        var likesTotal = Optional.ofNullable(jdbcTemplate.queryForObject(sql, Integer.class, postId));
-        log.debug("PostJdbcRepository::incrementLikesCountById {} out. Result: {}", postId, likesTotal.orElse(null));
-        return likesTotal;
+        Integer likesTotal;
+        try {
+            likesTotal = jdbcTemplate.queryForObject(sql, Integer.class, postId);
+        } catch (EmptyResultDataAccessException exc) {
+            likesTotal = null;
+        }
+        log.debug("PostJdbcRepository::incrementLikesCountById {} out. Result: {}", postId, likesTotal);
+        return Optional.ofNullable(likesTotal);
     }
 
     @Override
