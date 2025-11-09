@@ -34,19 +34,19 @@ public class PostController {
     }
 
     @PostMapping
-    public ResponseEntity<PostDto> createPost(@RequestBody @Valid CreatePostDto createPostDto) {
-        log.info("PostController::createPost {} begins", createPostDto);
-        var response = new ResponseEntity<>(postService.create(createPostDto), HttpStatus.CREATED);
-        log.info("PostController::createPost {} ends. Result: {}", createPostDto, response.getBody());
+    public ResponseEntity<PostDto> createPost(@RequestBody @Valid PostCreateDto postCreateDto) {
+        log.info("PostController::createPost {} begins", postCreateDto);
+        var response = new ResponseEntity<>(postService.create(postCreateDto), HttpStatus.CREATED);
+        log.info("PostController::createPost {} ends. Result: {}", postCreateDto, response.getBody());
         return response;
     }
 
     @PutMapping("/{postId}")
     public ResponseEntity<PostDto> updatePost(@PathVariable Long postId,
-                                              @RequestBody @Valid UpdatePostDto updatePostDto) {
-        log.info("PostController::updatePost {} -> {} begins", postId, updatePostDto);
-        var response = ResponseEntity.ok(postService.update(postId, updatePostDto));
-        log.info("PostController::updatePost {} -> {} ends. Result: {}", postId, updatePostDto, response.getBody());
+                                              @RequestBody @Valid PostUpdateDto postUpdateDto) {
+        log.info("PostController::updatePost {} -> {} begins", postId, postUpdateDto);
+        var response = ResponseEntity.ok(postService.update(postId, postUpdateDto));
+        log.info("PostController::updatePost {} -> {} ends. Result: {}", postId, postUpdateDto, response.getBody());
         return response;
     }
 

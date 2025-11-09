@@ -1,16 +1,14 @@
 package edu.yandex.project.repository;
 
 import edu.yandex.project.entity.PostEntity;
+import edu.yandex.project.repository.jdbc.util.PostEntityPage;
 import org.springframework.lang.NonNull;
 
-import java.util.List;
 import java.util.Optional;
 
 public interface PostRepository {
 
-    List<PostEntity> findAll(@NonNull String titlePart, int offset, int limit);
-
-    Long getPostCount();
+    PostEntityPage findAll(@NonNull String titlePart, int offset, int limit);
 
     Optional<PostEntity> findById(@NonNull Long postId);
 

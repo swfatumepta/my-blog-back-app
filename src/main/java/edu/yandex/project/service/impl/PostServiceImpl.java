@@ -4,7 +4,6 @@ import edu.yandex.project.controller.dto.post.*;
 import edu.yandex.project.entity.PostEntity;
 import edu.yandex.project.exception.InconsistentPostDataException;
 import edu.yandex.project.exception.PostNotFoundException;
-import edu.yandex.project.exception.ProjectException;
 import edu.yandex.project.factory.PostFactory;
 import edu.yandex.project.repository.PostRepository;
 import edu.yandex.project.service.PostService;
@@ -26,11 +25,11 @@ public class PostServiceImpl implements PostService {
     @Transactional(readOnly = true)
     public PostPageDto findAll(@NonNull PostPageRequestParameters parameters) {
         log.debug("PostServiceImpl::findAll {} in", parameters);
-        var postEntities = postRepository.findAll(parameters.search(), parameters.pageNumber(), parameters.pageSize());
-        var postCount = postRepository.getPostCount();
+        int offset = parameters.pageNumber() * parameters.pageSize();
+        var postEntityPage = postRepository.findAll(parameters.search(), offset, parameters.pageSize());
         // count comment request
         // tags request (?)
-        var postPageDto = postFactory.createPostPageDto(postEntities, parameters, postCount);
+        var postPageDto = postFactory.createPostPageDto(postEntityPage);
         log.debug("PostServiceImpl::findAll {} out. Result: {}", parameters, postPageDto);
         return postPageDto;
     }
@@ -39,7 +38,10 @@ public class PostServiceImpl implements PostService {
     @Transactional(readOnly = true)
     public PostDto findOne(@NonNull Long postId) {
         log.debug("PostServiceImpl::findOne {} in", postId);
-        var postEntity = postRepository.findById(postId).orElseThrow(PostNotFoundException::new);
+        var postEntity = postRepository.findById(postId).orElseThrow(() -> {
+            log.error("PostServiceImpl::findOne post.id = {} not found", postId);
+            return new PostNotFoundException(postId);
+        });
         var postDto = postFactory.createPostDto(postEntity);
         log.debug("PostServiceImpl::findOne {} out. Result: {}", postId, postEntity);
         return postDto;
@@ -47,9 +49,9 @@ public class PostServiceImpl implements PostService {
 
     @Override
     @Transactional
-    public PostDto create(@NonNull CreatePostDto createPostDto) {
-        log.debug("PostServiceImpl::create {} in", createPostDto);
-        var postEntity = new PostEntity(createPostDto.title(), createPostDto.text());
+    public PostDto create(@NonNull PostCreateDto postCreateDto) {
+        log.debug("PostServiceImpl::create {} in", postCreateDto);
+        var postEntity = new PostEntity(postCreateDto.title(), postCreateDto.text());
 
         postEntity = postRepository.save(postEntity);
         var postDto = postFactory.createPostDto(postEntity);
@@ -59,14 +61,16 @@ public class PostServiceImpl implements PostService {
 
     @Override
     @Transactional
-    public PostDto update(@NonNull Long postId, @NonNull UpdatePostDto updatePostDto) {
-        log.debug("PostServiceImpl::update {} -> {} in", postId, updatePostDto);
-        if (!postId.equals(updatePostDto.id())) {
-            throw new InconsistentPostDataException();
+    public PostDto update(@NonNull Long postId, @NonNull PostUpdateDto postUpdateDto) {
+        log.debug("PostServiceImpl::update {} -> {} in", postId, postUpdateDto);
+        if (!postId.equals(postUpdateDto.id())) {
+            log.error("PostServiceImpl::update post.id = {} (path) != post.id = {} (PostUpdateDto.id)",
+                    postId, postUpdateDto.id());
+            throw new InconsistentPostDataException("Request path post.id != request body post.id");
         }
-        var postEntity = new PostEntity(updatePostDto.id(), updatePostDto.title(), updatePostDto.text());
+        var postEntity = new PostEntity(postUpdateDto.id(), postUpdateDto.title(), postUpdateDto.text());
 
-        postEntity = postRepository.update(postEntity).orElseThrow(PostNotFoundException::new);
+        postEntity = postRepository.update(postEntity).orElseThrow(() -> new PostNotFoundException(postId));
         var postDto = postFactory.createPostDto(postEntity);
         log.debug("PostServiceImpl::update {} out", postDto);
         return postDto;
@@ -76,7 +80,12 @@ public class PostServiceImpl implements PostService {
     @Transactional
     public Integer addLike(@NonNull Long postId) {
         log.debug("PostServiceImpl::addLike {} in", postId);
-        var likesCount = postRepository.incrementLikesCountById(postId).orElseThrow(PostNotFoundException::new);
+        var likesCount = postRepository.incrementLikesCountById(postId)
+                .orElseThrow(() -> {
+                            log.error("PostServiceImpl::addLike post.id = {} not found", postId);
+                            return new PostNotFoundException(postId);
+                        }
+                );
         log.debug("PostServiceImpl::addLike {} out. Total: {}", postId, likesCount);
         return likesCount;
     }
@@ -87,9 +96,8 @@ public class PostServiceImpl implements PostService {
         log.debug("PostServiceImpl::delete {} in", postId);
         int deletedRows = postRepository.deleteById(postId);
         if (deletedRows == 0) {
-            throw new PostNotFoundException();
-        } else if (deletedRows > 1) {
-            throw new ProjectException();
+            log.error("PostServiceImpl::delete post.id = {} not found", postId);
+            throw new PostNotFoundException(postId);
         }
         log.debug("PostServiceImpl::delete {} out", postId);
     }

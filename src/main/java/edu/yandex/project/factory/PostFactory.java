@@ -2,32 +2,38 @@ package edu.yandex.project.factory;
 
 import edu.yandex.project.controller.dto.post.*;
 import edu.yandex.project.entity.PostEntity;
+import edu.yandex.project.repository.jdbc.util.PostEntityPage;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Component;
 
-import java.util.Collection;
-
 @Slf4j
 @Component
 public class PostFactory {
 
+    @Getter
     @Value("${post.text.size.max:128}")
     private Integer textMaxSize;
 
-    public PostPageDto createPostPageDto(@NonNull Collection<PostEntity> postEntities,
-                                         @NonNull PostPageRequestParameters requestParameters,
-                                         @NonNull Long totalPostCount) {
+    @Getter
+    @Value("${post.text.length.overlimit.stub:...}")
+    private String textLengthOverlimitStub;
+
+    public PostPageDto createPostPageDto(@NonNull PostEntityPage source) {
         log.debug("PostMapper::createPostPageDto in");
-        var postDtoList = postEntities.stream()
+        var postDtoList = source.getContent().stream()
                 .map(this::createPostDto)
                 .toList();
-        var postPageDto = PostPageDto.builder()
-                .posts(postDtoList)
-                .hasPrev(requestParameters.pageNumber() > 0)
-                .hasNext(requestParameters.pageSize() + requestParameters.pageNumber() < totalPostCount)
-                .build();
+
+        int lastPage = source.getTotalCount() != 0
+                ? Math.ceilDiv(source.getTotalCount(), source.getCurrentPageSize()) - 1
+                : 0;
+        boolean hasNext = source.getTotalCount() > (source.getCurrentPageNumber() + source.getCurrentPageSize());
+        boolean hasPrev = source.getCurrentPageNumber() > 0;
+
+        var postPageDto = new PostPageDto(postDtoList, hasNext, hasPrev, lastPage);
         log.debug("PostMapper::createPostPageDto out");
         return postPageDto;
     }
@@ -50,7 +56,7 @@ public class PostFactory {
     private String getPreparedText(String text) {
         var preparedString = text;
         if (text != null && text.length() > 128) {
-            preparedString = preparedString.substring(0, textMaxSize - 1) + "...";
+            preparedString = preparedString.substring(0, textMaxSize) + textLengthOverlimitStub;
         }
         return preparedString;
     }

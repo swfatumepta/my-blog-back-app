@@ -15,7 +15,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.AFTER_TEST_METHOD;
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TEST_METHOD;
 
-@Tag("Integration test for PostJdbcJdbcRepository")
+@Tag("Integration tests for PostJdbcJdbcRepository")
 class PostJdbcJdbcRepositoryIT extends AbstractJdbcRepositoryIT {
 
     @Autowired
@@ -29,7 +29,8 @@ class PostJdbcJdbcRepositoryIT extends AbstractJdbcRepositoryIT {
         var actualResult = postJdbcRepository.findAll("", 0, 100);
         // then
         assertNotNull(actualResult);
-        assertTrue(actualResult.isEmpty());
+        assertNotNull(actualResult.getContent());
+        assertTrue(actualResult.getContent().isEmpty());
     }
 
     @Test
@@ -162,8 +163,9 @@ class PostJdbcJdbcRepositoryIT extends AbstractJdbcRepositoryIT {
         // given
         var toBeDeleted = postJdbcRepository.findById(1L).orElseThrow();
         // when
-        postJdbcRepository.deleteById(toBeDeleted.getId());
+        int deletedRows = postJdbcRepository.deleteById(toBeDeleted.getId());
         // then
+        assertEquals(1, deletedRows);
         assertTrue(postJdbcRepository.findById(toBeDeleted.getId()).isEmpty());
     }
 }

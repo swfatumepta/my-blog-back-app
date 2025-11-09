@@ -1,18 +1,21 @@
 package edu.yandex.project.repository.jdbc;
 
 import edu.yandex.project.entity.PostEntity;
+import edu.yandex.project.repository.jdbc.util.PostEntityPage;
 import edu.yandex.project.repository.PostRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.DataAccessException;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.ResultSetExtractor;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Repository;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.List;
+import java.util.ArrayList;
 import java.util.Optional;
 
 @RequiredArgsConstructor
@@ -23,30 +26,26 @@ public class PostJdbcRepository implements PostRepository {
     private final JdbcTemplate jdbcTemplate;
 
     @Override
-    public List<PostEntity> findAll(@NonNull String textFragment, int offset, int limit) {
+    public PostEntityPage findAll(@NonNull String textFragment, int offset, int limit) {
         log.debug("PostJdbcRepository::findAll textFragment = {}, offset = {}, limit = {} in", textFragment, offset, limit);
         var searchPattern = "%" + textFragment + "%";
         var sql = """
-                SELECT id, title, text, likes_count, created_at
+                SELECT id, title, text, likes_count, created_at, COUNT(id) OVER() AS total_count
                 FROM posts
                 WHERE title ILIKE ? OR text ILIKE ?
                 ORDER BY created_at
                 OFFSET ?
                 LIMIT ?
                 """;
-        var fromDb = jdbcTemplate.query(sql, new PostEntityRowMapper(), searchPattern, searchPattern, offset, limit);
+        var page = jdbcTemplate.query(sql, new PostEntityPageExtractor(), searchPattern, searchPattern, offset, limit);
+        if (page == null) {
+            page = new PostEntityPage();
+        }
+        page.setCurrentPageNumber(offset);
+        page.setCurrentPageSize(limit);
         log.debug("PostJdbcRepository::findAll textFragment = {}, offset = {}, limit = {} out. Result: {}",
-                textFragment, offset, limit, fromDb);
-        return fromDb;
-    }
-
-    @Override
-    public Long getPostCount() {
-        log.debug("PostJdbcRepository::getPostCount in");
-        var sql = "SELECT COUNT(id) FROM posts";
-        var count = jdbcTemplate.queryForObject(sql, Long.class);
-        log.debug("PostJdbcRepository::getPostCount out. Result: {}", count);
-        return count;
+                textFragment, offset, limit, page);
+        return page;
     }
 
     @Override
@@ -128,6 +127,32 @@ public class PostJdbcRepository implements PostRepository {
         log.debug("PostJdbcRepository::deleteById {} out. Number of deleted rows: {}", postId, deletedTotal);
         return deletedTotal;
     }
+
+    private static class PostEntityPageExtractor implements ResultSetExtractor<PostEntityPage> {
+        @Override
+        public PostEntityPage extractData(@NonNull ResultSet rs) throws SQLException, DataAccessException {
+            log.debug("PostEntityRowMapper::mapRow ResultSet = {} in", rs);
+            var postEntities = new ArrayList<PostEntity>();
+            int totalCount = 0;
+            while (rs.next()) {
+                var postEntity = PostEntity.builder()
+                        .id(rs.getLong("id"))
+                        .title(rs.getString("title"))
+                        .text(rs.getString("text"))
+                        .likesCount(rs.getInt("likes_count"))
+                        .createdAt(rs.getTimestamp("created_at").toLocalDateTime())
+                        .build();
+                if (totalCount == 0) {
+                    totalCount = rs.getInt("total_count");
+                }
+                postEntities.add(postEntity);
+            }
+            var postEntityPage = new PostEntityPage(postEntities, totalCount);
+            log.debug("PostEntityRowMapper::mapRow ResultSet = {} out. Result: {}", rs, postEntityPage);
+            return postEntityPage;
+        }
+    }
+
 
     private static class PostEntityRowMapper implements RowMapper<PostEntity> {
         @Override

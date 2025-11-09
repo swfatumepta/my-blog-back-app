@@ -9,9 +9,9 @@ public interface PostService {
 
     PostDto findOne(@NonNull Long postId);
 
-    PostDto create(@NonNull CreatePostDto createPostDto);
+    PostDto create(@NonNull PostCreateDto postCreateDto);
 
-    PostDto update(@NonNull Long postId, @NonNull UpdatePostDto updatePostDto);
+    PostDto update(@NonNull Long postId, @NonNull PostUpdateDto postUpdateDto);
 
     Integer addLike(@NonNull Long postId);
 

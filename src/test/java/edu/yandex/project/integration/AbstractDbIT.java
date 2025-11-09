@@ -7,7 +7,7 @@ import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
 @Testcontainers
-public abstract class AbstractPostgreSQLContainerIT {
+public abstract class AbstractDbIT {
 
     @Container
     static PostgreSQLContainer<?> POSTGRES_CONTAINER = new PostgreSQLContainer<>("postgres:16-alpine")
