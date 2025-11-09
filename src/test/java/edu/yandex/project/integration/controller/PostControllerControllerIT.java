@@ -1,14 +1,12 @@
 package edu.yandex.project.integration.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import edu.yandex.project.integration.AbstractIT;
 import edu.yandex.project.controller.dto.post.PostPageDto;
 import edu.yandex.project.controller.dto.post.PostPageRequestParameters;
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.test.context.web.WebAppConfiguration;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.util.MultiValueMap;
@@ -20,8 +18,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@WebAppConfiguration
-public class PostControllerIT extends AbstractIT {
+public class PostControllerControllerIT extends AbstractControllerIT {
     private final static String POSTS_ROOT = "/api/posts";
 
     @Autowired

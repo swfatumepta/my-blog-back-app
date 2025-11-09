@@ -26,7 +26,6 @@ version = '1.0-SNAPSHOT'
 
 ext {
     versions = [
-            hamcrest            : '3.0',
             hibernateValidator  : '9.0.1.Final',
             hikari              : '7.0.2',
             jackson             : '2.18.2',
@@ -85,8 +84,6 @@ dependencies {
     // junit
     testImplementation platform("org.junit:junit-bom:${versions.junit}")
     testImplementation 'org.junit.jupiter:junit-jupiter'
-    // hamcrest
-    testImplementation "org.hamcrest:hamcrest:${versions.hamcrest}"
     // testcontainers
     testImplementation "org.testcontainers:junit-jupiter:${versions.testcontainers}"
     testImplementation "org.testcontainers:postgresql:${versions.testcontainers}"

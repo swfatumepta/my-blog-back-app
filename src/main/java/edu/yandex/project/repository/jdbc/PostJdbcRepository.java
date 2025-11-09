@@ -4,6 +4,7 @@ import edu.yandex.project.entity.PostEntity;
 import edu.yandex.project.repository.PostRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.lang.NonNull;
@@ -56,9 +57,14 @@ public class PostJdbcRepository implements PostRepository {
                 FROM posts
                 WHERE id = ?
                 """;
-        var fromDb = Optional.ofNullable(jdbcTemplate.queryForObject(sql, new PostEntityRowMapper(), postId));
-        log.debug("PostJdbcRepository::findById {} out. Result: {}", postId, fromDb.orElse(null));
-        return fromDb;
+        PostEntity fromDb;
+        try {
+            fromDb = jdbcTemplate.queryForObject(sql, new PostEntityRowMapper(), postId);
+        } catch (EmptyResultDataAccessException exc) {
+            fromDb = null;
+        }
+        log.debug("PostJdbcRepository::findById {} out. Result: {}", postId, fromDb);
+        return Optional.ofNullable(fromDb);
     }
 
     @Override
