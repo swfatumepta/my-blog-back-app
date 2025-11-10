@@ -38,10 +38,11 @@ public class PostServiceImpl implements PostService {
     @Transactional(readOnly = true)
     public PostDto findOne(@NonNull Long postId) {
         log.debug("PostServiceImpl::findOne {} in", postId);
-        var postEntity = postRepository.findById(postId).orElseThrow(() -> {
-            log.error("PostServiceImpl::findOne post.id = {} not found", postId);
-            return new PostNotFoundException(postId);
-        });
+        var postEntity = postRepository.findById(postId)
+                .orElseThrow(() -> {
+                    log.error("PostServiceImpl::findOne post.id = {} not found", postId);
+                    return new PostNotFoundException(postId);
+                });
         var postDto = postFactory.createPostDto(postEntity);
         log.debug("PostServiceImpl::findOne {} out. Result: {}", postId, postEntity);
         return postDto;
@@ -70,7 +71,11 @@ public class PostServiceImpl implements PostService {
         }
         var postEntity = new PostEntity(postUpdateDto.id(), postUpdateDto.title(), postUpdateDto.text());
 
-        postEntity = postRepository.update(postEntity).orElseThrow(() -> new PostNotFoundException(postId));
+        postEntity = postRepository.update(postEntity)
+                .orElseThrow(() -> {
+                    log.error("PostServiceImpl::update post.id = {} not found", postId);
+                    return new PostNotFoundException(postId);
+                });
         var postDto = postFactory.createPostDto(postEntity);
         log.debug("PostServiceImpl::update {} out", postDto);
         return postDto;

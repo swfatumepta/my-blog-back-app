@@ -50,6 +50,7 @@ public class PostController {
         return response;
     }
 
+    // почему обновление поста происходит через PUT, а добавление лайка через POST, хотя суть одна - обновление?
     @PostMapping("/{postId}/likes")
     public ResponseEntity<Integer> addPostLike(@PathVariable Long postId) {
         log.info("PostController::addPostLike {} begins", postId);

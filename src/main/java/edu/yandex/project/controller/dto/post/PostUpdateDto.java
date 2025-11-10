@@ -7,11 +7,11 @@ import jakarta.validation.constraints.Size;
 public record PostUpdateDto(@NotNull(message = "PostUpdateDto.id is required")
                             Long id,
 
-                            @NotBlank(message = "PostUpdateDto.title is required")
+                            @NotNull(message = "PostUpdateDto.title is required")
                             @Size(max = 255, message = "PostUpdateDto.title max length = 255")
                             String title,
 
-                            @NotBlank(message = "PostUpdateDto.text is required")
+                            @NotNull(message = "PostUpdateDto.text is required")
                             String text) {
 // todo
 //                            @NotNull(message = "PostUpdateDto.tags is required")

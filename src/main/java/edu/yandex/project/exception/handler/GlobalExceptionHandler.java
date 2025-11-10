@@ -6,8 +6,8 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.lang.NonNull;
-import org.springframework.validation.FieldError;
 import org.springframework.validation.ObjectError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -31,12 +31,25 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         log.warn("GlobalExceptionHandler::handleMethodArgumentNotValid {} in", exc.toString());
         var errorMessage = exc.getBindingResult()
                 .getAllErrors().stream()
-                .map(GlobalExceptionHandler::extractErrorMessage)
+                .map(ObjectError::getDefaultMessage)
                 .collect(Collectors.joining(", "));
         var errorResponse = new ErrorResponse(
                 HttpStatus.BAD_REQUEST.value(), errorMessage, extractRequestPath(request), LocalDateTime.now()
         );
         log.debug("GlobalExceptionHandler::handleMethodArgumentNotValid {} out", exc.toString());
+        return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
+    }
+
+    @Override
+    protected ResponseEntity<Object> handleHttpMessageNotReadable(@NonNull HttpMessageNotReadableException exc,
+                                                                  @NonNull HttpHeaders headers,
+                                                                  @NonNull HttpStatusCode status,
+                                                                  @NonNull WebRequest request) {
+        log.warn("GlobalExceptionHandler::handleHttpMessageNotReadable {} in", exc.toString());
+        var errorResponse = new ErrorResponse(
+                HttpStatus.BAD_REQUEST.value(), exc.getLocalizedMessage(), extractRequestPath(request), LocalDateTime.now()
+        );
+        log.debug("GlobalExceptionHandler::handleHttpMessageNotReadable {} out", exc.toString());
         return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
     }
 
@@ -53,13 +66,5 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 
     private static String extractRequestPath(WebRequest webRequest) {
         return ((ServletWebRequest) webRequest).getRequest().getRequestURI();
-    }
-
-    private static String extractErrorMessage(ObjectError error) {
-        if (error instanceof FieldError fieldError) {
-            return fieldError.getField() + ": " + error.getDefaultMessage();
-        } else {
-            return error.getObjectName() + ": " + error.getDefaultMessage();
-        }
     }
 }

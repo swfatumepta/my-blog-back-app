@@ -85,6 +85,8 @@ dependencies {
     // junit
     testImplementation platform("org.junit:junit-bom:${versions.junit}")
     testImplementation 'org.junit.jupiter:junit-jupiter'
+    // mockito
+    testImplementation "org.mockito:mockito-junit-jupiter:${versions.junit}"
     // testcontainers
     testImplementation "org.testcontainers:junit-jupiter:${versions.testcontainers}"
     testImplementation "org.testcontainers:postgresql:${versions.testcontainers}"
