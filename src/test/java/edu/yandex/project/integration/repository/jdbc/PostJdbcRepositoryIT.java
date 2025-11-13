@@ -16,7 +16,7 @@ import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.AFTER_TES
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TEST_METHOD;
 
 @Tag("Integration tests for PostJdbcJdbcRepository")
-class PostJdbcJdbcRepositoryIT extends AbstractJdbcRepositoryIT {
+class PostJdbcRepositoryIT extends AbstractJdbcRepositoryIT {
 
     @Autowired
     private PostJdbcRepository postJdbcRepository;
@@ -44,8 +44,8 @@ class PostJdbcJdbcRepositoryIT extends AbstractJdbcRepositoryIT {
         assertTrue(actualResult.isEmpty());
     }
 
-    @Test
     @Sql(executionPhase = AFTER_TEST_METHOD, scripts = "classpath:sql/clean-env.sql")
+    @Test
     void save_success_updatesPostAndReturnAllRequiredFields() {
         // given
         var toBeSaved = new PostEntity("Сказка. Глава 1", "В некотором Царстве, в некотором Государстве..");
@@ -73,11 +73,11 @@ class PostJdbcJdbcRepositoryIT extends AbstractJdbcRepositoryIT {
         assertTrue(actualResult.isEmpty());
     }
 
-    @Test
     @SqlGroup({
             @Sql(executionPhase = BEFORE_TEST_METHOD, scripts = "classpath:sql/repository/post/insert-single-post.sql"),
             @Sql(executionPhase = AFTER_TEST_METHOD, scripts = "classpath:sql/clean-env.sql")
     })
+    @Test
     void update_successfulUpdate_returnAllRequiredFields() {
         // given
         var toBeUpdated = postJdbcRepository.findById(1L).orElseThrow();
@@ -118,11 +118,11 @@ class PostJdbcJdbcRepositoryIT extends AbstractJdbcRepositoryIT {
         assertTrue(actualResult.isEmpty());
     }
 
-    @Test
     @SqlGroup({
             @Sql(executionPhase = BEFORE_TEST_METHOD, scripts = "classpath:sql/repository/post/insert-single-post.sql"),
             @Sql(executionPhase = AFTER_TEST_METHOD, scripts = "classpath:sql/clean-env.sql")
     })
+    @Test
     void incrementLikesCountById_success_incrementsLikeAndReturnLatestState() {
         // given
         var toBeUpdated = postJdbcRepository.findById(1L).orElseThrow();
@@ -154,11 +154,11 @@ class PostJdbcJdbcRepositoryIT extends AbstractJdbcRepositoryIT {
         // then success
     }
 
-    @Test
     @SqlGroup({
             @Sql(executionPhase = BEFORE_TEST_METHOD, scripts = "classpath:sql/repository/post/insert-single-post.sql"),
             @Sql(executionPhase = AFTER_TEST_METHOD, scripts = "classpath:sql/clean-env.sql")
     })
+    @Test
     void deleteById_success_existentPostDeletedFromDb() {
         // given
         var toBeDeleted = postJdbcRepository.findById(1L).orElseThrow();

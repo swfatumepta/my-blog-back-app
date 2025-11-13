@@ -50,4 +50,21 @@ public class CommentControllerIT extends AbstractControllerIT {
                 .andExpect(jsonPath("$[1].text").value("Отличная статья! Спасибо за информацию."))
                 .andExpect(jsonPath("$[1].postId").value(1));
     }
+
+    @SqlGroup({
+            @Sql(executionPhase = BEFORE_TEST_METHOD, scripts = "classpath:sql/controller/comment/insert-single-post-with-5-comments.sql"),
+            @Sql(executionPhase = AFTER_TEST_METHOD, scripts = "classpath:sql/clean-env.sql"),
+    })
+    @Test
+    void getPostComment_inCasePostWithItsCommentExist_success() throws Exception {
+        // given
+        var uri = MessageFormat.format(COMMENTS_ROOT_PATTERN, 1L) + "/5";
+        // when
+        mockMvc.perform(get(uri))
+                // then
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(5))
+                .andExpect(jsonPath("$.text").value("Буду ждать продолжения."))
+                .andExpect(jsonPath("$.postId").value(1));
+    }
 }

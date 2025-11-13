@@ -1,5 +1,6 @@
-package edu.yandex.project.integration.config.testcontainers;
+package edu.yandex.project.integration.config.testcontainers.ext;
 
+import edu.yandex.project.integration.config.testcontainers.ITPostgreSQLContainer;
 import org.junit.jupiter.api.extension.BeforeAllCallback;
 import org.junit.jupiter.api.extension.ExtensionContext;
 

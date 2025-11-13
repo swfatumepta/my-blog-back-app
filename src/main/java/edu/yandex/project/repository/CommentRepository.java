@@ -4,8 +4,11 @@ import edu.yandex.project.entity.CommentEntity;
 import org.springframework.lang.NonNull;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface CommentRepository {
 
-    List<CommentEntity> findByPostId(@NonNull Long postId);
+    List<CommentEntity> findAllByPostId(@NonNull Long postId);
+
+    Optional<CommentEntity> findByPostIdAndCommentId(@NonNull Long postId, @NonNull Long commentId);
 }

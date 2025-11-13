@@ -4,6 +4,7 @@ import edu.yandex.project.entity.CommentEntity;
 import edu.yandex.project.repository.CommentRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.lang.NonNull;
@@ -12,6 +13,7 @@ import org.springframework.stereotype.Repository;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.List;
+import java.util.Optional;
 
 @RequiredArgsConstructor
 @Slf4j
@@ -21,8 +23,8 @@ public class CommentJdbcRepository implements CommentRepository {
     private final JdbcTemplate jdbcTemplate;
 
     @Override
-    public List<CommentEntity> findByPostId(@NonNull Long postId) {
-        log.debug("CommentJdbcRepository::findByPostId {} in", postId);
+    public List<CommentEntity> findAllByPostId(@NonNull Long postId) {
+        log.debug("CommentJdbcRepository::findAllByPostId {} in", postId);
         var sql = """
                 SELECT id, text, post_id, created_at
                 FROM comments
@@ -30,8 +32,27 @@ public class CommentJdbcRepository implements CommentRepository {
                 ORDER BY id
                 """;
         var fromDb = jdbcTemplate.query(sql, new CommentEntityRowMapper(), postId);
-        log.debug("CommentJdbcRepository::findByPostId {} out. Result: {}", postId, fromDb);
+        log.debug("CommentJdbcRepository::findAllByPostId {} out. Result: {}", postId, fromDb);
         return fromDb;
+    }
+
+    @Override
+    public Optional<CommentEntity> findByPostIdAndCommentId(@NonNull Long postId, @NonNull Long commentId) {
+        log.debug("CommentJdbcRepository::findByPostIdAndCommentId post.id = {}, comment.id = {} in", postId, commentId);
+        var sql = """
+                SELECT id, text, post_id, created_at
+                FROM comments
+                WHERE post_id = ? AND id = ?
+                """;
+        CommentEntity fromDb;
+        try {
+            fromDb = jdbcTemplate.queryForObject(sql, new CommentEntityRowMapper(), postId, commentId);
+        } catch (EmptyResultDataAccessException exc) {
+            fromDb = null;
+        }
+        log.debug("CommentJdbcRepository::findByPostIdAndCommentId post.id = {}, comment.id = {} out. Result: {}",
+                postId, commentId, fromDb);
+        return Optional.ofNullable(fromDb);
     }
 
     private static class CommentEntityRowMapper implements RowMapper<CommentEntity> {

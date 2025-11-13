@@ -25,4 +25,12 @@ public class CommentController {
         log.info("CommentController::getPostComments {} ends. Result: {}", postId, response.getBody());
         return response;
     }
+
+    @GetMapping("/{commentId}")
+    public ResponseEntity<CommentDto> getPostComment(@PathVariable Long postId, @PathVariable Long commentId) {
+        log.info("CommentController::getPostComment {}: {} begins", postId, commentId);
+        var response = ResponseEntity.ok(commentService.findPostComment(postId, commentId));
+        log.info("CommentController::getPostComment {}: {} ends. Result: {}", postId, commentId, response.getBody());
+        return response;
+    }
 }
