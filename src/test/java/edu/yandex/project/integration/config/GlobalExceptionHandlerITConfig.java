@@ -1,6 +1,7 @@
 package edu.yandex.project.integration.config;
 
 import edu.yandex.project.factory.PostFactory;
+import edu.yandex.project.repository.CommentRepository;
 import edu.yandex.project.repository.PostRepository;
 import org.mockito.Mockito;
 import org.springframework.context.annotation.*;
@@ -17,12 +18,17 @@ import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 public class GlobalExceptionHandlerITConfig {
 
     @Bean
-    protected PostFactory postFactory() {
+    protected PostFactory mockedPostFactory() {
         return Mockito.mock(PostFactory.class);
     }
 
     @Bean
-    protected PostRepository postRepository() {
+    protected PostRepository mockedPostRepository() {
         return Mockito.mock(PostRepository.class);
+    }
+
+    @Bean
+    protected CommentRepository mockedCommentRepository() {
+        return Mockito.mock(CommentRepository.class);
     }
 }
