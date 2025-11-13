@@ -1,16 +1,13 @@
 package edu.yandex.project.integration.exception.handler;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import edu.yandex.project.controller.dto.post.PostCreateDto;
 import edu.yandex.project.controller.dto.post.PostPageRequestParameters;
 import edu.yandex.project.controller.dto.post.PostUpdateDto;
 import edu.yandex.project.exception.handler.ErrorResponse;
-import edu.yandex.project.integration.config.GlobalExceptionHandlerITConfig;
 import edu.yandex.project.repository.PostRepository;
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -18,12 +15,7 @@ import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.junit.jupiter.web.SpringJUnitWebConfig;
-import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.util.MultiValueMap;
-import org.springframework.web.context.WebApplicationContext;
 
 import java.text.MessageFormat;
 import java.util.Map;
@@ -36,26 +28,12 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@ActiveProfiles("exception")
-@SpringJUnitWebConfig(GlobalExceptionHandlerITConfig.class)
-public class GlobalExceptionHandlerIT {
+@Tag("PostController exception handler integration test")
+public class PostControllerExceptionHandlerIT extends AbstractGlobalExceptionHandlerIT {
     private final static String POSTS_ROOT = "/api/posts";
-
-    private final static ObjectMapper OBJECT_MAPPER = new ObjectMapper()
-            .registerModule(new JavaTimeModule());
-
-    @Autowired
-    private WebApplicationContext webApplicationContext;
 
     @Autowired
     private PostRepository mockedPostRepository;
-
-    private MockMvc mockMvc;
-
-    @BeforeEach
-    void init() {
-        mockMvc = MockMvcBuilders.webAppContextSetup(webApplicationContext).build();
-    }
 
     @MethodSource("postController_getPosts_invalidRequestParametersProvider")
     @ParameterizedTest(name = "PostController::findPosts -> {0}")
