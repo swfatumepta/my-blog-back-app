@@ -88,6 +88,7 @@ public class CommentControllerIT extends AbstractControllerIT {
                         .content(requestBody))
                 // then
                 .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.id").value(6))
                 .andExpect(jsonPath("$.text").value(commentCreateDto.text()))
                 .andExpect(jsonPath("$.postId").value(commentCreateDto.postId()));
     }
