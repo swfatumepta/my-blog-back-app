@@ -52,7 +52,7 @@ public class CommentControllerExceptionHandlerIT extends AbstractGlobalException
                 // then
                 .andExpect(status().isUnprocessableEntity())
                 .andExpect(jsonPath("$.statusCode").value(HttpStatus.UNPROCESSABLE_ENTITY.value()))
-                .andExpect(jsonPath("$.message").value("Request path post.id != comment.postId"))
+                .andExpect(jsonPath("$.message").value("Request path post.id != dto.postId"))
                 .andExpect(jsonPath("$.path").value(uri))
                 .andExpect(jsonPath("$.timestamp").isNotEmpty());
     }

@@ -23,4 +23,10 @@ public class CommentEntity {
         this.postId = postId;
         this.text = text;
     }
+
+    public CommentEntity(Long id, Long postId, String text) {
+        this.id = id;
+        this.postId = postId;
+        this.text = text;
+    }
 }

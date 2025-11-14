@@ -68,6 +68,27 @@ public class CommentJdbcRepository implements CommentRepository {
         return saved;
     }
 
+    @Override
+    public Optional<CommentEntity> update(@NonNull CommentEntity toBeUpdated) {
+        log.debug("CommentJdbcRepository::update {} in", toBeUpdated);
+        var sql = """
+                UPDATE comments
+                SET text = ?
+                WHERE id = ? AND post_id = ?
+                RETURNING id, text, post_id, created_at
+                """;
+        CommentEntity updated;
+        try {
+            updated = jdbcTemplate.queryForObject(
+                    sql, new CommentEntityRowMapper(), toBeUpdated.getText(), toBeUpdated.getId(), toBeUpdated.getPostId()
+            );
+        } catch (EmptyResultDataAccessException exc) {
+            updated = null;
+        }
+        log.debug("CommentJdbcRepository::update {} out", updated);
+        return Optional.ofNullable(updated);
+    }
+
     private static class CommentEntityRowMapper implements RowMapper<CommentEntity> {
         @Override
         public CommentEntity mapRow(@NonNull ResultSet rs, int rowNum) throws SQLException {

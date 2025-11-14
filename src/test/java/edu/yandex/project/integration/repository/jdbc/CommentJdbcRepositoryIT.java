@@ -1,5 +1,6 @@
 package edu.yandex.project.integration.repository.jdbc;
 
+import edu.yandex.project.entity.CommentEntity;
 import edu.yandex.project.repository.jdbc.CommentJdbcRepository;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -8,6 +9,8 @@ import org.junit.jupiter.params.provider.CsvSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.context.jdbc.SqlGroup;
+
+import java.time.LocalDateTime;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.AFTER_TEST_METHOD;
@@ -47,5 +50,29 @@ class CommentJdbcRepositoryIT extends AbstractJdbcRepositoryIT {
         // then
         assertNotNull(actualResult);
         assertTrue(actualResult.isEmpty());
+    }
+
+    @CsvSource({
+            "1, 12345678",          // nonexistent post.id
+            "12345678, 1",          // nonexistent comment.id
+            "12345678, 12345678",   // nonexistent post.id && nonexistent comment.id
+    })
+    @ParameterizedTest
+    @SqlGroup({
+            @Sql(executionPhase = BEFORE_TEST_METHOD, scripts = "classpath:sql/repository/comment/insert-single-post-with-single-comment.sql"),
+            @Sql(executionPhase = AFTER_TEST_METHOD, scripts = "classpath:sql/clean-env.sql")
+    })
+    void update_nonExistentPostAndOrComment_dbDataMustNotBeUpdatd_and_noExceptionThrown(Long postId, Long commentId) {
+        // given
+        var updatedEntityData = new CommentEntity(commentId, postId, LocalDateTime.now().toString());
+        // when
+        var actualResult = commentJdbcRepository.update(updatedEntityData);
+        // then
+        assertNotNull(actualResult);
+        assertTrue(actualResult.isEmpty());
+        assertNotEquals(
+                updatedEntityData.getText(),
+                commentJdbcRepository.findByPostIdAndCommentId(1L, 1L).orElseThrow().getText()
+        );
     }
 }

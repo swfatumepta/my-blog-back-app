@@ -44,4 +44,15 @@ public class CommentController {
         log.info("CommentController::createPost {}: {} ends. Result: {}", postId, commentCreateDto, response.getBody());
         return response;
     }
+
+    @PutMapping("/{commentId}")
+    public ResponseEntity<CommentDto> updatePostComment(@PathVariable Long postId,
+                                                        @PathVariable Long commentId,
+                                                        @RequestBody @Valid CommentDto commentDto) {
+        log.info("CommentController::updatePostComment {}: {}: {} begins", postId, commentId, commentDto);
+        var response = ResponseEntity.ok(commentService.updatePostComment(postId, commentId, commentDto));
+        log.info("CommentController::updatePostComment {}: {}: {} ends. Result: {}",
+                postId, commentId, commentDto, response.getBody());
+        return response;
+    }
 }

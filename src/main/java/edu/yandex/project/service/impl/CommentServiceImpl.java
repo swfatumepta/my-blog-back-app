@@ -56,11 +56,7 @@ public class CommentServiceImpl implements CommentService {
     @Transactional
     public CommentDto addPostComment(@NonNull Long postId, @NonNull CommentCreateDto commentCreateDto) {
         log.debug("CommentServiceImpl::addPostComment post.id = {}, CreateCommentDto = {} in", postId, commentCreateDto);
-        if (!postId.equals(commentCreateDto.postId())) {
-            log.error("CommentServiceImpl::addPostComment post.id ({}) != CreateCommentDto.postId ({})",
-                    postId, commentCreateDto.postId());
-            throw new InconsistentPostDataException("Request path post.id != comment.postId");
-        }
+        this.validateDataConsistency(postId, commentCreateDto);
         this.checkIfPostExists(postId);
 
         var commentEntity = new CommentEntity(postId, commentCreateDto.text());
@@ -70,6 +66,41 @@ public class CommentServiceImpl implements CommentService {
         log.debug("CommentServiceImpl::addPostComment post.id = {}, CreateCommentDto = {} out. Result: {}",
                 postId, commentCreateDto, commentDto);
         return commentDto;
+    }
+
+    @Override
+    @Transactional
+    public CommentDto updatePostComment(@NonNull Long postId, @NonNull Long commentId, @NonNull CommentDto updateData) {
+        log.debug("CommentServiceImpl::updatePostComment post.id = {}, comment.id = {}, CommentDto = {} in",
+                postId, commentId, updateData);
+        this.validateDataConsistency(postId, commentId, updateData);
+        var updatedEntityData = new CommentEntity(updateData.id(), updateData.postId(), updateData.text());
+        var updated = commentRepository.update(updatedEntityData)
+                .orElseThrow(() -> {
+                    log.error("CommentServiceImpl::updatePostComment post.id = {} with comment.id = {} was not found",
+                            postId, commentId);
+                    return new CommentNotFoundException(postId, commentId);
+                });
+        log.debug("CommentServiceImpl::updatePostComment post.id = {}, comment.id = {}, CommentDto = {} out. Result: {}",
+                postId, commentId, updateData, updated);
+        return updateData;
+    }
+
+    private void validateDataConsistency(Long postId, Long commentId, CommentDto commentDto) {
+        this.validateDataConsistency(postId, new CommentCreateDto(null, commentDto.postId()));
+        if (!commentId.equals(commentDto.id())) {
+            log.error("CommentServiceImpl::validateDataConsistency comment.id ({}) != dto.id ({})",
+                    postId, commentDto.id());
+            throw new InconsistentPostDataException("Request path post.id != dto.postId");
+        }
+    }
+
+    private void validateDataConsistency(Long postId, CommentCreateDto commentCreateDto) {
+        if (!postId.equals(commentCreateDto.postId())) {
+            log.error("CommentServiceImpl::validateDataConsistency post.id ({}) != dto.postId ({})",
+                    postId, commentCreateDto.postId());
+            throw new InconsistentPostDataException("Request path post.id != dto.postId");
+        }
     }
 
     private void checkIfPostExists(Long postIdToBeChecked) {
