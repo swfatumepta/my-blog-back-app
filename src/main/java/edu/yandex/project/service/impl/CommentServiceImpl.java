@@ -91,7 +91,7 @@ public class CommentServiceImpl implements CommentService {
         if (!commentId.equals(commentDto.id())) {
             log.error("CommentServiceImpl::validateDataConsistency comment.id ({}) != dto.id ({})",
                     postId, commentDto.id());
-            throw new InconsistentPostDataException("Request path post.id != dto.postId");
+            throw new InconsistentPostDataException("Request path comment.id != dto.commentId");
         }
     }
 

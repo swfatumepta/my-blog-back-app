@@ -1,6 +1,5 @@
 package edu.yandex.project.repository;
 
-import edu.yandex.project.controller.dto.comment.CommentDto;
 import edu.yandex.project.entity.CommentEntity;
 import org.springframework.lang.NonNull;
 

@@ -20,6 +20,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Stream;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -48,7 +49,7 @@ public class PostControllerExceptionHandlerIT extends AbstractGlobalExceptionHan
 
         if (testCaseData.expectedMessage() != null) {
             var errorResponse = OBJECT_MAPPER.readValue(response, ErrorResponse.class);
-            Assertions.assertEquals(testCaseData.expectedMessage, errorResponse.message());
+            assertEquals(testCaseData.expectedMessage, errorResponse.message());
         }
     }
 
@@ -70,7 +71,7 @@ public class PostControllerExceptionHandlerIT extends AbstractGlobalExceptionHan
 
         if (testCaseData.expectedMessage() != null) {
             var errorResponse = OBJECT_MAPPER.readValue(response, ErrorResponse.class);
-            Assertions.assertEquals(testCaseData.expectedMessage, errorResponse.message());
+            assertEquals(testCaseData.expectedMessage, errorResponse.message());
         }
     }
 
@@ -325,6 +326,6 @@ public class PostControllerExceptionHandlerIT extends AbstractGlobalExceptionHan
         );
     }
 
-    record TestCaseData(Object testValue, int expectedStatus, String expectedMessage) {
+    private record TestCaseData(Object testValue, int expectedStatus, String expectedMessage) {
     }
 }

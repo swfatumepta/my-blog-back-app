@@ -2,8 +2,6 @@ package edu.yandex.project.integration.controller;
 
 import edu.yandex.project.controller.dto.comment.CommentCreateDto;
 import edu.yandex.project.controller.dto.comment.CommentDto;
-import edu.yandex.project.controller.dto.post.PostDto;
-import edu.yandex.project.controller.dto.post.PostUpdateDto;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.MediaType;
