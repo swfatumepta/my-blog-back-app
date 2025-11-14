@@ -4,7 +4,6 @@ import edu.yandex.project.controller.dto.post.PostCreateDto;
 import edu.yandex.project.controller.dto.post.PostPageRequestParameters;
 import edu.yandex.project.controller.dto.post.PostUpdateDto;
 import edu.yandex.project.exception.handler.ErrorResponse;
-import edu.yandex.project.repository.PostRepository;
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Tag;
@@ -12,7 +11,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.util.MultiValueMap;
@@ -31,9 +29,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @Tag("PostController exception handler integration test")
 public class PostControllerExceptionHandlerIT extends AbstractGlobalExceptionHandlerIT {
     private final static String POSTS_ROOT = "/api/posts";
-
-    @Autowired
-    private PostRepository mockedPostRepository;
 
     @MethodSource("postController_getPosts_invalidRequestParametersProvider")
     @ParameterizedTest(name = "PostController::findPosts -> {0}")

@@ -55,6 +55,19 @@ public class CommentJdbcRepository implements CommentRepository {
         return Optional.ofNullable(fromDb);
     }
 
+    @Override
+    public CommentEntity save(@NonNull CommentEntity toBeSaved) {
+        log.debug("CommentJdbcRepository::save {} in", toBeSaved);
+        var sql = """
+                INSERT INTO comments (text, post_id)
+                VALUES (?, ?)
+                RETURNING id, text, post_id, created_at
+                """;
+        var saved = jdbcTemplate.queryForObject(sql, new CommentEntityRowMapper(), toBeSaved.getText(), toBeSaved.getPostId());
+        log.debug("CommentJdbcRepository::save {} out", saved);
+        return saved;
+    }
+
     private static class CommentEntityRowMapper implements RowMapper<CommentEntity> {
         @Override
         public CommentEntity mapRow(@NonNull ResultSet rs, int rowNum) throws SQLException {

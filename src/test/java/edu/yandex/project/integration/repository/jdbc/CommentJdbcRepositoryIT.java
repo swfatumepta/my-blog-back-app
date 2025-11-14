@@ -22,7 +22,7 @@ class CommentJdbcRepositoryIT extends AbstractJdbcRepositoryIT {
     @Test
     void findAllByPostId_emptyResult_noExceptionThrown() {
         // given
-        // table 'comments' is empty
+        // table 'posts' is empty
         // when
         var actualResult = commentJdbcRepository.findAllByPostId(1L);
         // then
@@ -42,7 +42,6 @@ class CommentJdbcRepositoryIT extends AbstractJdbcRepositoryIT {
     })
     void findById_emptyResult_noExceptionThrown(Long postId, Long commentId) {
         // given
-        // table 'posts' is empty
         // when
         var actualResult = commentJdbcRepository.findByPostIdAndCommentId(postId, commentId);
         // then

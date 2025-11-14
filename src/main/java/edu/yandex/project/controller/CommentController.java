@@ -1,10 +1,12 @@
 package edu.yandex.project.controller;
 
 import edu.yandex.project.controller.dto.comment.CommentDto;
-import edu.yandex.project.controller.dto.post.*;
+import edu.yandex.project.controller.dto.comment.CommentCreateDto;
 import edu.yandex.project.service.CommentService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -31,6 +33,15 @@ public class CommentController {
         log.info("CommentController::getPostComment {}: {} begins", postId, commentId);
         var response = ResponseEntity.ok(commentService.findPostComment(postId, commentId));
         log.info("CommentController::getPostComment {}: {} ends. Result: {}", postId, commentId, response.getBody());
+        return response;
+    }
+
+    @PostMapping
+    public ResponseEntity<CommentDto> createPostComment(@PathVariable Long postId,
+                                                        @RequestBody @Valid CommentCreateDto commentCreateDto) {
+        log.info("CommentController::createPostComment {}: {} begins", postId, commentCreateDto);
+        var response = new ResponseEntity<>(commentService.addPostComment(postId, commentCreateDto), HttpStatus.CREATED);
+        log.info("CommentController::createPost {}: {} ends. Result: {}", postId, commentCreateDto, response.getBody());
         return response;
     }
 }

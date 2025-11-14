@@ -18,4 +18,9 @@ public class CommentEntity {
 
     private String text;
     private LocalDateTime createdAt;
+
+    public CommentEntity(Long postId, String text) {
+        this.postId = postId;
+        this.text = text;
+    }
 }

@@ -3,6 +3,7 @@ package edu.yandex.project.integration.exception.handler;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import edu.yandex.project.integration.config.GlobalExceptionHandlerITConfig;
+import edu.yandex.project.repository.PostRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ActiveProfiles;
@@ -19,6 +20,9 @@ public abstract class AbstractGlobalExceptionHandlerIT {
 
     @Autowired
     protected WebApplicationContext webApplicationContext;
+
+    @Autowired
+    protected PostRepository mockedPostRepository;
 
     protected MockMvc mockMvc;
 

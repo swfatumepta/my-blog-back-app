@@ -11,4 +11,6 @@ public interface CommentRepository {
     List<CommentEntity> findAllByPostId(@NonNull Long postId);
 
     Optional<CommentEntity> findByPostIdAndCommentId(@NonNull Long postId, @NonNull Long commentId);
+
+    CommentEntity save(@NonNull CommentEntity commentEntity);
 }
