@@ -75,7 +75,12 @@ public class PostControllerIT extends AbstractControllerIT {
         allPostsSet.forEach(postDto -> Assertions.assertAll(
                 () -> assertNotNull(postDto.id()),
                 () -> assertTrue(postDto.likesCount() > 0),
-//                () -> assertNotNull(postDto.commentsCount()),   todo
+                () -> {
+                    if (postDto.id() == 10) {
+                        assertEquals(1, postDto.commentsCount());
+                    }
+                    assertNotNull(postDto.commentsCount());
+                },
                 () -> assertFalse(postDto.title().isEmpty()),
 
                 () -> assertFalse(postDto.text().isEmpty()),
@@ -129,11 +134,11 @@ public class PostControllerIT extends AbstractControllerIT {
                 // then
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.posts").isArray())
-                .andExpect(jsonPath("$.posts[0].id").isNumber())
+                .andExpect(jsonPath("$.posts[0].id").value(10))
                 .andExpect(jsonPath("$.posts[0].title").value("Тут лежит текст длинной 150 символов"))
                 .andExpect(jsonPath("$.posts[0].text").isNotEmpty())
                 .andExpect(jsonPath("$.posts[0].likesCount").value(30))
-//                .andExpect(jsonPath("$.posts[0].commentsCount").value(1))  todo
+                .andExpect(jsonPath("$.posts[0].commentsCount").value(1))
                 .andExpect(jsonPath("$.hasNext").value(false))
                 .andExpect(jsonPath("$.hasPrev").value(false))
                 .andExpect(jsonPath("$.lastPage").value(0));
@@ -142,10 +147,20 @@ public class PostControllerIT extends AbstractControllerIT {
     @Test
     void createPost_success() throws Exception {
         // given
+        // check if there are no post in db present
+        var requestParams = Map.of(
+                PostPageRequestParameters.Fields.search, "",
+                PostPageRequestParameters.Fields.pageNumber, "0",
+                PostPageRequestParameters.Fields.pageSize, "100"
+        );
+        mockMvc.perform(get(POSTS_ROOT).params(MultiValueMap.fromSingleValue(requestParams)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.posts.length()").value(0));
+        // check ends
         var postCreateDto = new PostCreateDto("createPost_success", "void createPost_success() throws Exception");
         var requestBody = objectMapper.writeValueAsString(postCreateDto);
         // when
-        var response = mockMvc.perform(post(POSTS_ROOT)
+        var afterCreateResponse = mockMvc.perform(post(POSTS_ROOT)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(requestBody))
                 // then
@@ -154,11 +169,22 @@ public class PostControllerIT extends AbstractControllerIT {
                 .andExpect(jsonPath("$.title").value(postCreateDto.title()))
                 .andExpect(jsonPath("$.text").value(postCreateDto.text()))
                 .andExpect(jsonPath("$.likesCount").value(0))   // init value
-//                .andExpect(jsonPath("$.posts[0].commentsCount").value(1))  todo
+                .andExpect(jsonPath("$.commentsCount").value(0))   // default value
                 .andReturn().getResponse().getContentAsString();
 
-        var parsedResponse = objectMapper.readValue(response, PostDto.class);
-        assertNotNull(parsedResponse);
+        var afterCreateParsedResponse = objectMapper.readValue(afterCreateResponse, PostDto.class);
+        // and send GET again to make sure, that post added to the DB
+        mockMvc.perform(get(POSTS_ROOT).params(MultiValueMap.fromSingleValue(requestParams)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.posts.length()").value(1))
+                .andExpect(jsonPath("$.posts[0].id").value(afterCreateParsedResponse.id()))
+                .andExpect(jsonPath("$.posts[0].title").value(afterCreateParsedResponse.title()))
+                .andExpect(jsonPath("$.posts[0].text").value(afterCreateParsedResponse.text()))
+                .andExpect(jsonPath("$.posts[0].likesCount").value(afterCreateParsedResponse.likesCount()))
+                .andExpect(jsonPath("$.posts[0].commentsCount").value(afterCreateParsedResponse.commentsCount()))
+                .andExpect(jsonPath("$.hasNext").value(false))
+                .andExpect(jsonPath("$.hasPrev").value(false))
+                .andExpect(jsonPath("$.lastPage").value(0));
     }
 
     @SqlGroup({
@@ -176,7 +202,7 @@ public class PostControllerIT extends AbstractControllerIT {
                 .andExpect(jsonPath("$.title").value("Тестовый заголовок 1"))
                 .andExpect(jsonPath("$.text").value("Это текст первого тестового поста."))
                 .andExpect(jsonPath("$.likesCount").value(42))
-//                .andExpect(jsonPath("$.posts[0].commentsCount").value(1))  todo
+                .andExpect(jsonPath("$.commentsCount").value(1))
                 .andReturn().getResponse().getContentAsString();
         var postBeforeUpdate = objectMapper.readValue(responseBeforeUpdate, PostDto.class);
         assertNotNull(postBeforeUpdate);
@@ -197,16 +223,16 @@ public class PostControllerIT extends AbstractControllerIT {
                 .andExpect(jsonPath("$.id").value(postBeforeUpdate.id()))
                 .andExpect(jsonPath("$.title").value(postUpdateDto.title()))
                 .andExpect(jsonPath("$.text").value(postUpdateDto.text()))
-                .andExpect(jsonPath("$.likesCount").value(postBeforeUpdate.likesCount()));
-//                .andExpect(jsonPath("$.posts[0].commentsCount").value(1))  todo
-        // and send GET again to make sure, that post updates committed to the DB
+                .andExpect(jsonPath("$.likesCount").value(postBeforeUpdate.likesCount()))
+                .andExpect(jsonPath("$.commentsCount").value(1));
+        // and send GET to make sure, that post updates committed to the DB
         mockMvc.perform(get(uri))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(postUpdateDto.id()))
                 .andExpect(jsonPath("$.title").value(postUpdateDto.title()))
                 .andExpect(jsonPath("$.text").value(postUpdateDto.text()))
-                .andExpect(jsonPath("$.likesCount").value(postBeforeUpdate.likesCount()));
-//                .andExpect(jsonPath("$.posts[0].commentsCount").value(1))  todo
+                .andExpect(jsonPath("$.likesCount").value(postBeforeUpdate.likesCount()))
+                .andExpect(jsonPath("$.commentsCount").value(1));
     }
 
     @SqlGroup({

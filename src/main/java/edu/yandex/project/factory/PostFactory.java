@@ -7,6 +7,7 @@ import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.lang.NonNull;
+import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Component;
 
 @Slf4j
@@ -46,11 +47,16 @@ public class PostFactory {
                     .id(source.getId())
                     .title(source.getTitle())
                     .text(getPreparedText(source.getText()))
-                    .likesCount(source.getLikesCount());
+                    .likesCount(source.getLikesCount())
+                    .commentsCount(this.safeGetInt(source.getCommentsCount()));
         }
         var built = postDtoBuilder.build();
         log.debug("PostMapper::toPostDto {} out. Result: {}", source, built);
         return built;
+    }
+
+    private int safeGetInt(@Nullable Integer integer) {
+        return integer != null ? integer : 0;
     }
 
     private String getPreparedText(String text) {

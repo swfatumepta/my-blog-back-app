@@ -17,7 +17,12 @@
                 <constraints nullable="false"
                              foreignKeyName="fk_comment_to_post"
                              referencedTableName="posts"
-                             referencedColumnNames="id"/>
+                             referencedColumnNames="id"
+                             deleteCascade="true"/>
+                <!-- deleteCascade="true" -->
+                <!-- ВАЖНЫЙ МОМЕНТ: такое решение хорошо подходит в случае, если работа с БД ведется НЕ ЧЕРЕЗ JPA -->
+                <!-- без этого параметра на FK необходимо будет в CTE или во внешней транзакции сперва удалить comments, чтобы удалить привязанный post -->
+                <!-- в JPA есть настройка orphanRemoval и/или cascadeType -->
             </column>
             <column name="created_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP">
                 <constraints nullable="false"/>

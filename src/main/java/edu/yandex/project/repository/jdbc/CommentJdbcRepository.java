@@ -99,6 +99,15 @@ public class CommentJdbcRepository implements CommentRepository {
         return deletedTotal;
     }
 
+    @Override
+    public int countPostCommentsTotal(@NonNull Long postId) {
+        log.debug("CommentJdbcRepository::countPostCommentsTotal {} in", postId);
+        var sql = "SELECT COUNT(id) FROM comments WHERE post_id = ?";
+        var totalCommentsNumber = jdbcTemplate.queryForObject(sql, Integer.class, postId);
+        log.debug("CommentJdbcRepository::countPostCommentsTotal {} out. Result: {}", postId, totalCommentsNumber);
+        return totalCommentsNumber != null ? totalCommentsNumber : 0;
+    }
+
     private static class CommentEntityRowMapper implements RowMapper<CommentEntity> {
         @Override
         public CommentEntity mapRow(@NonNull ResultSet rs, int rowNum) throws SQLException {

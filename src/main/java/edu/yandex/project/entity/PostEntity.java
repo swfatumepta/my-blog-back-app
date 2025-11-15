@@ -12,12 +12,12 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 public class PostEntity {
-
     private Long id;
 
     private String title;
     private String text;
     private Integer likesCount;
+    private Integer commentsCount;
     private LocalDateTime createdAt;
 
     public PostEntity(String title, String text) {

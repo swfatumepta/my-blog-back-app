@@ -5,6 +5,7 @@ import edu.yandex.project.entity.PostEntity;
 import edu.yandex.project.exception.InconsistentPostDataException;
 import edu.yandex.project.exception.PostNotFoundException;
 import edu.yandex.project.factory.PostFactory;
+import edu.yandex.project.repository.CommentRepository;
 import edu.yandex.project.repository.PostRepository;
 import edu.yandex.project.service.PostService;
 import lombok.RequiredArgsConstructor;
@@ -18,7 +19,9 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 public class PostServiceImpl implements PostService {
 
+    private final CommentRepository commentRepository;
     private final PostRepository postRepository;
+
     private final PostFactory postFactory;
 
     @Override
@@ -27,7 +30,6 @@ public class PostServiceImpl implements PostService {
         log.debug("PostServiceImpl::findAll {} in", parameters);
         int offset = parameters.pageNumber() * parameters.pageSize();
         var postEntityPage = postRepository.findAll(parameters.search(), offset, parameters.pageSize());
-        // count comment request
         // tags request (?)
         var postPageDto = postFactory.createPostPageDto(postEntityPage);
         log.debug("PostServiceImpl::findAll {} out. Result: {}", parameters, postPageDto);
@@ -76,6 +78,9 @@ public class PostServiceImpl implements PostService {
                     log.error("PostServiceImpl::update post.id = {} not found", postId);
                     return new PostNotFoundException(postId);
                 });
+        int commentsCount = commentRepository.countPostCommentsTotal(postId);
+        postEntity.setCommentsCount(commentsCount);
+
         var postDto = postFactory.createPostDto(postEntity);
         log.debug("PostServiceImpl::update {} out", postDto);
         return postDto;

@@ -17,4 +17,6 @@ public interface CommentRepository {
     Optional<CommentEntity> update(@NonNull CommentEntity toBeUpdated);
 
     int deleteByPostIdAndCommentId(@NonNull Long postId, @NonNull Long commentId);
+
+    int countPostCommentsTotal(@NonNull Long postId);
 }

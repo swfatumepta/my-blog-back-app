@@ -30,10 +30,18 @@ public class PostJdbcRepository implements PostRepository {
         log.debug("PostJdbcRepository::findAll textFragment = {}, offset = {}, limit = {} in", textFragment, offset, limit);
         var searchPattern = "%" + textFragment + "%";
         var sql = """
-                SELECT id, title, text, likes_count, created_at, COUNT(id) OVER() AS total_count
-                FROM posts
-                WHERE title ILIKE ? OR text ILIKE ?
-                ORDER BY created_at
+                SELECT p.id AS p_id,
+                       p.title AS p_title,
+                       p.text AS p_text,
+                       p.likes_count AS p_likes,
+                       p.created_at AS p_created,
+                       COUNT(p.id) OVER() AS p_total_count,
+                       COUNT(c.id) AS p_total_comments
+                FROM posts p
+                    LEFT JOIN comments c ON p.id = c.post_id
+                WHERE p.title ILIKE ? OR p.text ILIKE ?
+                GROUP BY p.id, p.title, p.text, p.likes_count, p.created_at
+                ORDER BY p.id
                 OFFSET ?
                 LIMIT ?
                 """;
@@ -52,9 +60,18 @@ public class PostJdbcRepository implements PostRepository {
     public Optional<PostEntity> findById(@NonNull Long postId) {
         log.debug("PostJdbcRepository::findById {} in", postId);
         var sql = """
-                SELECT id, title, text, likes_count, created_at
-                FROM posts
-                WHERE id = ?
+                SELECT p.id AS p_id,
+                       p.title AS p_title,
+                       p.text AS p_text,
+                       p.likes_count AS p_likes,
+                       p.created_at AS p_created,
+                       COUNT(p.id) OVER() AS p_total_count,
+                       COUNT(c.id) AS p_total_comments
+                FROM posts p
+                    LEFT JOIN comments c ON p.id = c.post_id
+                WHERE p.id = ?
+                GROUP BY p.id, p.title, p.text, p.likes_count, p.created_at
+                ORDER BY p.id
                 """;
         PostEntity fromDb;
         try {
@@ -72,7 +89,7 @@ public class PostJdbcRepository implements PostRepository {
         var sql = """
                 INSERT INTO posts (title, text)
                 VALUES (?, ?)
-                RETURNING id, title, text, likes_count, created_at
+                RETURNING id p_id, title p_title, text p_text, likes_count p_likes, created_at p_created
                 """;
         var saved = jdbcTemplate.queryForObject(sql, new PostEntityRowMapper(), toBeSaved.getTitle(), toBeSaved.getText());
         log.debug("PostJdbcRepository::save {} out", saved);
@@ -86,7 +103,7 @@ public class PostJdbcRepository implements PostRepository {
                 UPDATE posts
                 SET title = ?, text = ?
                 WHERE id = ?
-                RETURNING id, title, text, likes_count, created_at
+                RETURNING id p_id, title p_title, text p_text, likes_count p_likes, created_at p_created
                 """;
         PostEntity updated;
         try {
@@ -136,14 +153,15 @@ public class PostJdbcRepository implements PostRepository {
             int totalCount = 0;
             while (rs.next()) {
                 var postEntity = PostEntity.builder()
-                        .id(rs.getLong("id"))
-                        .title(rs.getString("title"))
-                        .text(rs.getString("text"))
-                        .likesCount(rs.getInt("likes_count"))
-                        .createdAt(rs.getTimestamp("created_at").toLocalDateTime())
+                        .id(rs.getLong("p_id"))
+                        .title(rs.getString("p_title"))
+                        .text(rs.getString("p_text"))
+                        .likesCount(rs.getInt("p_likes"))
+                        .commentsCount(rs.getInt("p_total_comments"))
+                        .createdAt(rs.getTimestamp("p_created").toLocalDateTime())
                         .build();
                 if (totalCount == 0) {
-                    totalCount = rs.getInt("total_count");
+                    totalCount = rs.getInt("p_total_count");
                 }
                 postEntities.add(postEntity);
             }
@@ -153,20 +171,31 @@ public class PostJdbcRepository implements PostRepository {
         }
     }
 
-
     private static class PostEntityRowMapper implements RowMapper<PostEntity> {
         @Override
         public PostEntity mapRow(@NonNull ResultSet rs, int rowNum) throws SQLException {
             log.debug("PostEntityRowMapper::mapRow ResultSet = {}, row = {} in", rs, rowNum);
             var postEntity = PostEntity.builder()
-                    .id(rs.getLong("id"))
-                    .title(rs.getString("title"))
-                    .text(rs.getString("text"))
-                    .likesCount(rs.getInt("likes_count"))
-                    .createdAt(rs.getTimestamp("created_at").toLocalDateTime())
+                    .id(rs.getLong("p_id"))
+                    .title(rs.getString("p_title"))
+                    .text(rs.getString("p_text"))
+                    .likesCount(rs.getInt("p_likes"))
+                    .createdAt(rs.getTimestamp("p_created").toLocalDateTime())
                     .build();
+            if (hasColumn(rs, "p_total_comments")) {
+                postEntity.setCommentsCount(rs.getInt("p_total_comments"));
+            }
             log.debug("PostEntityRowMapper::mapRow ResultSet = {}, row = {} out. Result: {}", rs, rowNum, postEntity);
             return postEntity;
+        }
+
+        private static boolean hasColumn(ResultSet rs, String columnName) {
+            try {
+                rs.findColumn(columnName);
+                return true;
+            } catch (SQLException e) {
+                return false;
+            }
         }
     }
 }
