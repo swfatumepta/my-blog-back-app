@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                            http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.28.xsd">
+
+    <changeSet author="ftmpt" id="04-1">
+        <createTable tableName="post_tags">
+            <column name="post_id" type="BIGINT">
+                <constraints nullable="false"
+                             foreignKeyName="fk_post_tag_post"
+                             referencedTableName="posts"
+                             referencedColumnNames="id"
+                             deleteCascade="true"/>
+            </column>
+            <column name="tag_id" type="BIGINT">
+                <constraints nullable="false"
+                             foreignKeyName="fk_post_tag_tag"
+                             referencedTableName="tags"
+                             referencedColumnNames="id"
+                             deleteCascade="true"/>
+            </column>
+            <column name="created_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <addPrimaryKey tableName="post_tags" columnNames="post_id, tag_id"/>
+        <!-- Индексы для быстрого поиска -->
+        <createIndex tableName="post_tags" indexName="idx_post_tags_post_id">
+            <column name="post_id"/>
+        </createIndex>
+        <createIndex tableName="post_tags" indexName="idx_post_tags_tag_id">
+            <column name="tag_id"/>
+        </createIndex>
+    </changeSet>
+
+</databaseChangeLog>
