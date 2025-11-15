@@ -2,6 +2,7 @@ package edu.yandex.project.factory;
 
 import edu.yandex.project.controller.dto.post.*;
 import edu.yandex.project.entity.PostEntity;
+import edu.yandex.project.entity.TagEntity;
 import edu.yandex.project.repository.jdbc.util.PostEntityPage;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -9,6 +10,9 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Component;
+
+import java.util.Collection;
+import java.util.List;
 
 @Slf4j
 @Component
@@ -48,11 +52,20 @@ public class PostFactory {
                     .title(source.getTitle())
                     .text(getPreparedText(source.getText()))
                     .likesCount(source.getLikesCount())
-                    .commentsCount(this.safeGetInt(source.getCommentsCount()));
+                    .commentsCount(this.safeGetInt(source.getCommentsCount()))
+                    .tags(this.getTagNames(source.getTags()));
         }
         var built = postDtoBuilder.build();
         log.debug("PostMapper::toPostDto {} out. Result: {}", source, built);
         return built;
+    }
+
+    private List<String> getTagNames(@Nullable Collection<TagEntity> tagEntities) {
+        return tagEntities == null
+                ? List.of()
+                : tagEntities.stream()
+                .map(TagEntity::getName)
+                .toList();
     }
 
     private int safeGetInt(@Nullable Integer integer) {

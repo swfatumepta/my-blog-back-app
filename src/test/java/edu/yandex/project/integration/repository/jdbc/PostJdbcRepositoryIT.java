@@ -9,6 +9,7 @@ import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.context.jdbc.SqlGroup;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -26,7 +27,7 @@ class PostJdbcRepositoryIT extends AbstractJdbcRepositoryIT {
         // given
         // table 'posts' is empty
         // when
-        var actualResult = postJdbcRepository.findAll("", 0, 100);
+        var actualResult = postJdbcRepository.findAll("", List.of(), 0, 100);
         // then
         assertNotNull(actualResult);
         assertNotNull(actualResult.getContent());

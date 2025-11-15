@@ -13,6 +13,7 @@ import org.springframework.util.MultiValueMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.*;
@@ -77,12 +78,19 @@ public class PostControllerIT extends AbstractControllerIT {
                 () -> assertNotNull(postDto.id()),
                 () -> assertTrue(postDto.likesCount() > 0),
                 () -> {
+                    assertNotNull(postDto.commentsCount());
                     if (postDto.id() == 10) {
                         assertEquals(1, postDto.commentsCount());
                     }
-                    assertNotNull(postDto.commentsCount());
                 },
                 () -> assertFalse(postDto.title().isEmpty()),
+                () -> {
+                    assertNotNull(postDto.tags());
+                    if (postDto.id() == 8) {
+                        assertEquals(2, postDto.tags().size());
+                        assertTrue(postDto.tags().containsAll(Set.of("test_tag_1", "test_tag_2")));
+                    }
+                },
 
                 () -> assertFalse(postDto.text().isEmpty()),
                 () -> assertTrue(isValidPostText(postDto.text()))
@@ -171,6 +179,9 @@ public class PostControllerIT extends AbstractControllerIT {
                 .andExpect(jsonPath("$.text").value(postCreateDto.text()))
                 .andExpect(jsonPath("$.likesCount").value(0))   // init value
                 .andExpect(jsonPath("$.commentsCount").value(0))   // default value
+                .andExpect(jsonPath("$.tags").isArray())
+                .andExpect(jsonPath("$.tags.length()").value(1))
+                .andExpect(jsonPath("$.tags[0]").value("tag1"))
                 .andReturn().getResponse().getContentAsString();
 
         var afterCreateParsedResponse = objectMapper.readValue(afterCreateResponse, PostDto.class);
@@ -204,15 +215,18 @@ public class PostControllerIT extends AbstractControllerIT {
                 .andExpect(jsonPath("$.text").value("Это текст первого тестового поста."))
                 .andExpect(jsonPath("$.likesCount").value(42))
                 .andExpect(jsonPath("$.commentsCount").value(1))
+                .andExpect(jsonPath("$.tags").isArray())
+                .andExpect(jsonPath("$.tags.length()").value(2))
                 .andReturn().getResponse().getContentAsString();
         var postBeforeUpdate = objectMapper.readValue(responseBeforeUpdate, PostDto.class);
         assertNotNull(postBeforeUpdate);
+        assertTrue(postBeforeUpdate.tags().containsAll(Set.of("test_tag_1", "test_tag_2")));
 
         var postUpdateDto = new PostUpdateDto(
                 postBeforeUpdate.id(),
                 postBeforeUpdate.title() + " -> TITLE_UPDATED",
                 "Совершенно иной текст. Да, и такое бывает!",
-                List.of("tag1, tag2")
+                List.of("tag1")
         );
         var requestUpdateBody = objectMapper.writeValueAsString(postUpdateDto);
         // -- preparations finished --
@@ -226,7 +240,10 @@ public class PostControllerIT extends AbstractControllerIT {
                 .andExpect(jsonPath("$.title").value(postUpdateDto.title()))
                 .andExpect(jsonPath("$.text").value(postUpdateDto.text()))
                 .andExpect(jsonPath("$.likesCount").value(postBeforeUpdate.likesCount()))
-                .andExpect(jsonPath("$.commentsCount").value(1));
+                .andExpect(jsonPath("$.commentsCount").value(1))
+                .andExpect(jsonPath("$.tags").isArray())
+                .andExpect(jsonPath("$.tags.length()").value(1))
+                .andExpect(jsonPath("$.tags[0]").value(postUpdateDto.tags().getFirst()));
         // and send GET to make sure, that post updates committed to the DB
         mockMvc.perform(get(uri))
                 .andExpect(status().isOk())
@@ -234,7 +251,10 @@ public class PostControllerIT extends AbstractControllerIT {
                 .andExpect(jsonPath("$.title").value(postUpdateDto.title()))
                 .andExpect(jsonPath("$.text").value(postUpdateDto.text()))
                 .andExpect(jsonPath("$.likesCount").value(postBeforeUpdate.likesCount()))
-                .andExpect(jsonPath("$.commentsCount").value(1));
+                .andExpect(jsonPath("$.commentsCount").value(1))
+                .andExpect(jsonPath("$.tags").isArray())
+                .andExpect(jsonPath("$.tags.length()").value(1))
+                .andExpect(jsonPath("$.tags[0]").value(postUpdateDto.tags().getFirst()));
     }
 
     @SqlGroup({

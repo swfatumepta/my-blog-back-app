@@ -1,6 +1,7 @@
 package edu.yandex.project.repository.jdbc;
 
 import edu.yandex.project.entity.PostEntity;
+import edu.yandex.project.repository.jdbc.util.DbUtil;
 import edu.yandex.project.repository.jdbc.util.PostEntityPage;
 import edu.yandex.project.repository.PostRepository;
 import lombok.RequiredArgsConstructor;
@@ -16,6 +17,7 @@ import org.springframework.stereotype.Repository;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 @RequiredArgsConstructor
@@ -26,33 +28,85 @@ public class PostJdbcRepository implements PostRepository {
     private final JdbcTemplate jdbcTemplate;
 
     @Override
-    public PostEntityPage findAll(@NonNull String textFragment, int offset, int limit) {
-        log.debug("PostJdbcRepository::findAll textFragment = {}, offset = {}, limit = {} in", textFragment, offset, limit);
-        var searchPattern = "%" + textFragment + "%";
+    public PostEntityPage findAll(@NonNull String textFilter, @NonNull List<String> tagsFilter, int offset, int limit) {
+        log.debug("PostJdbcRepository::findAll textFragment = {}, tagsFilter = {}, offset = {}, limit = {} in",
+                textFilter, tagsFilter, offset, limit);
+        var textAndTitleSearchPattern = "%" + textFilter + "%";
+        var requiredTags = DbUtil.convertToNativePostgreSqlTextArray(jdbcTemplate, tagsFilter);
         var sql = """
+                    -- CTE with filtration results (by title, text and tags)
+                    WITH post_ids_filtered_by_text_and_title AS (
+                        SELECT id
+                        FROM posts
+                        WHERE title ILIKE ? OR text ILIKE ?
+                    ),
+                    tags_filter AS (
+                        SELECT id, name, created_at
+                        FROM tags
+                        WHERE ? OR name = ANY(?::text[])
+                    ),
+                    post_ids_filtered_by_tags AS (
+                        SELECT pt.post_id
+                        FROM post_tag pt
+                            JOIN tags_filter tf ON pt.tag_id = tf.id
+                        GROUP BY pt.post_id
+                        HAVING ? OR COUNT(DISTINCT pt.tag_id) = ?
+                    ),
+                    filtered_posts AS (
+                        SELECT pifbtat.id
+                        FROM post_ids_filtered_by_text_and_title pifbtat
+                        WHERE ? OR pifbtat.id IN (
+                            SELECT pifbt.post_id FROM post_ids_filtered_by_tags pifbt
+                        )
+                    )
+                -- main query
                 SELECT p.id AS p_id,
                        p.title AS p_title,
                        p.text AS p_text,
                        p.likes_count AS p_likes,
                        p.created_at AS p_created,
                        COUNT(p.id) OVER() AS p_total_count,
-                       COUNT(c.id) AS p_total_comments
+                       COUNT(DISTINCT c.id) AS p_total_comments,
+                       COALESCE(
+                            JSON_AGG(
+                                JSON_BUILD_OBJECT(
+                                    'id', t.id,
+                                    'name', t.name,
+                                    'createdAt', t.created_at
+                                )
+                            ) FILTER (WHERE t.id IS NOT NULL),
+                            '[]'::json
+                       ) AS p_tags_json_array
                 FROM posts p
+                    JOIN filtered_posts fp ON p.id = fp.id
                     LEFT JOIN comments c ON p.id = c.post_id
-                WHERE p.title ILIKE ? OR p.text ILIKE ?
+                    LEFT JOIN post_tag pt ON p.id = pt.post_id
+                    LEFT JOIN tags t ON pt.tag_id = t.id
                 GROUP BY p.id, p.title, p.text, p.likes_count, p.created_at
-                ORDER BY p.id
+                ORDER BY p.created_at DESC
                 OFFSET ?
                 LIMIT ?
                 """;
-        var page = jdbcTemplate.query(sql, new PostEntityPageExtractor(), searchPattern, searchPattern, offset, limit);
+        var page = jdbcTemplate.query(
+                sql,
+                new PostEntityPageExtractor(),
+                textAndTitleSearchPattern,
+                textAndTitleSearchPattern,
+                tagsFilter.isEmpty(),   // if true ignore next statement
+                requiredTags,
+                tagsFilter.isEmpty(),   // if true ignore next statement
+                tagsFilter.size(),
+                tagsFilter.isEmpty(),   // if true ignore next statement
+                offset,
+                limit
+        );
         if (page == null) {
             page = new PostEntityPage();
         }
         page.setCurrentPageNumber(offset);
         page.setCurrentPageSize(limit);
-        log.debug("PostJdbcRepository::findAll textFragment = {}, offset = {}, limit = {} out. Result: {}",
-                textFragment, offset, limit, page);
+        log.debug("PostJdbcRepository::findAll textFragment = {}, tagsFilter = {}, offset = {}, limit = {} out. Result: {}",
+                textFilter, tagsFilter, offset, limit, page);
         return page;
     }
 
@@ -159,6 +213,7 @@ public class PostJdbcRepository implements PostRepository {
                         .likesCount(rs.getInt("p_likes"))
                         .commentsCount(rs.getInt("p_total_comments"))
                         .createdAt(rs.getTimestamp("p_created").toLocalDateTime())
+                        .tags(new ArrayList<>(DbUtil.getTags(rs)))
                         .build();
                 if (totalCount == 0) {
                     totalCount = rs.getInt("p_total_count");
@@ -182,20 +237,11 @@ public class PostJdbcRepository implements PostRepository {
                     .likesCount(rs.getInt("p_likes"))
                     .createdAt(rs.getTimestamp("p_created").toLocalDateTime())
                     .build();
-            if (hasColumn(rs, "p_total_comments")) {
+            if (DbUtil.hasColumn(rs, "p_total_comments")) {
                 postEntity.setCommentsCount(rs.getInt("p_total_comments"));
             }
             log.debug("PostEntityRowMapper::mapRow ResultSet = {}, row = {} out. Result: {}", rs, rowNum, postEntity);
             return postEntity;
-        }
-
-        private static boolean hasColumn(ResultSet rs, String columnName) {
-            try {
-                rs.findColumn(columnName);
-                return true;
-            } catch (SQLException e) {
-                return false;
-            }
         }
     }
 }

@@ -17,4 +17,8 @@ public abstract class AbstractProjectException extends RuntimeException {
         this.httpStatus = httpStatus;
         this.message = message;
     }
+
+    public AbstractProjectException(String message) {
+        this(DEFAULT_HTTP_STATUS, message);
+    }
 }

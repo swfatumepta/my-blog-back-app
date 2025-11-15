@@ -8,6 +8,6 @@
     <include file="01-create-table-posts.xml" relativeToChangelogFile="true"/>
     <include file="02-create-table-comments.xml" relativeToChangelogFile="true"/>
     <include file="03-create-table-tags.xml" relativeToChangelogFile="true"/>
-    <include file="04-create-table-post-tags.xml" relativeToChangelogFile="true"/>
+    <include file="04-create-table-post-tag.xml" relativeToChangelogFile="true"/>
 
 </databaseChangeLog>

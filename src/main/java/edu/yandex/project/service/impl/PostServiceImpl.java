@@ -7,12 +7,18 @@ import edu.yandex.project.exception.PostNotFoundException;
 import edu.yandex.project.factory.PostFactory;
 import edu.yandex.project.repository.CommentRepository;
 import edu.yandex.project.repository.PostRepository;
+import edu.yandex.project.repository.TagRepository;
 import edu.yandex.project.service.PostService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.lang.NonNull;
+import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
 
 @RequiredArgsConstructor
 @Slf4j
@@ -21,6 +27,7 @@ public class PostServiceImpl implements PostService {
 
     private final CommentRepository commentRepository;
     private final PostRepository postRepository;
+    private final TagRepository tagRepository;
 
     private final PostFactory postFactory;
 
@@ -29,8 +36,13 @@ public class PostServiceImpl implements PostService {
     public PostPageDto findAll(@NonNull PostPageRequestParameters parameters) {
         log.debug("PostServiceImpl::findAll {} in", parameters);
         int offset = parameters.pageNumber() * parameters.pageSize();
-        var postEntityPage = postRepository.findAll(parameters.search(), offset, parameters.pageSize());
-        // tags request (?)
+        var textAndTagsFilters = this.getTextAndTagsFilters(parameters.search());
+        var postEntityPage = postRepository.findAll(
+                textAndTagsFilters.searchString,
+                textAndTagsFilters.tags(),
+                offset,
+                parameters.pageSize()
+        );
         var postPageDto = postFactory.createPostPageDto(postEntityPage);
         log.debug("PostServiceImpl::findAll {} out. Result: {}", parameters, postPageDto);
         return postPageDto;
@@ -45,6 +57,9 @@ public class PostServiceImpl implements PostService {
                     log.error("PostServiceImpl::findOne post.id = {} not found", postId);
                     return new PostNotFoundException(postId);
                 });
+        var postTags = tagRepository.findAllByPostId(postId);
+        postEntity.setTags(postTags);
+
         var postDto = postFactory.createPostDto(postEntity);
         log.debug("PostServiceImpl::findOne {} out. Result: {}", postId, postEntity);
         return postDto;
@@ -55,8 +70,11 @@ public class PostServiceImpl implements PostService {
     public PostDto create(@NonNull PostCreateDto postCreateDto) {
         log.debug("PostServiceImpl::create {} in", postCreateDto);
         var postEntity = new PostEntity(postCreateDto.title(), postCreateDto.text());
-
         postEntity = postRepository.save(postEntity);
+
+        var postTagNames = tagRepository.createPostTags(postEntity.getId(), postCreateDto.tags());
+        postEntity.setTags(postTagNames);
+
         var postDto = postFactory.createPostDto(postEntity);
         log.debug("PostServiceImpl::create {} out", postDto);
         return postDto;
@@ -78,6 +96,10 @@ public class PostServiceImpl implements PostService {
                     log.error("PostServiceImpl::update post.id = {} not found", postId);
                     return new PostNotFoundException(postId);
                 });
+        tagRepository.unlinkAllTagsFromPost(postId);
+        var tagEntities = tagRepository.createPostTags(postId, postUpdateDto.tags());
+        postEntity.setTags(tagEntities);
+
         int commentsCount = commentRepository.countPostCommentsTotal(postId);
         postEntity.setCommentsCount(commentsCount);
 
@@ -110,5 +132,28 @@ public class PostServiceImpl implements PostService {
             throw new PostNotFoundException(postId);
         }
         log.debug("PostServiceImpl::delete {} out", postId);
+    }
+
+    // не уверен, что тут размещать логику формирования фильтров правильно, но не придумал, куда их деть
+    private PostTextAndTagsFilters getTextAndTagsFilters(@Nullable String toBeParsed) {
+        if (toBeParsed == null || toBeParsed.trim().isEmpty()) {
+            return new PostTextAndTagsFilters("", List.of());
+        }
+        var tags = new HashSet<String>();
+        var searchString = new StringBuilder();
+        for (String substring : toBeParsed.trim().split("\\s+")) {
+            if (substring.startsWith("#") && substring.length() > 1) {
+                tags.add(substring.substring(1));
+            } else {
+                searchString.append(substring).append(" ");
+            }
+        }
+        if (searchString.length() > 1) {
+            searchString.deleteCharAt(searchString.length() - 1);
+        }
+        return new PostTextAndTagsFilters(searchString.toString(), new ArrayList<>(tags));
+    }
+
+    private record PostTextAndTagsFilters(String searchString, List<String> tags) {
     }
 }

@@ -27,6 +27,10 @@ public class DataSourceConfig {
         hikariConfig.setUsername(username);
         hikariConfig.setPassword(password);
         hikariConfig.setDriverClassName(driver);
+
+        hikariConfig.setMaxLifetime(120000);            // 2 минуты
+        hikariConfig.setIdleTimeout(60000);             // 1 минута
+        hikariConfig.setLeakDetectionThreshold(30000);  // 30 секунд
         return new HikariDataSource(hikariConfig);
     }
 

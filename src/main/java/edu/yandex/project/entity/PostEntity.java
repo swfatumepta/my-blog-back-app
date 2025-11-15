@@ -6,6 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Data
 @Builder
@@ -19,6 +20,7 @@ public class PostEntity {
     private Integer likesCount;
     private Integer commentsCount;
     private LocalDateTime createdAt;
+    private List<TagEntity> tags;
 
     public PostEntity(String title, String text) {
         this.title = title;

@@ -16,3 +16,11 @@ VALUES (1, 'Тестовый заголовок 1',
 
 INSERT INTO comments (text, post_id)
 VALUES ('simple comment', 10);
+
+INSERT INTO tags (name)
+VALUES ('test_tag_1'),
+       ('test_tag_2');
+
+INSERT INTO post_tag (post_id, tag_id)
+VALUES (8, (SELECT id FROM tags WHERE name = 'test_tag_1')),
+       (8, (SELECT id FROM tags WHERE name = 'test_tag_2'))
