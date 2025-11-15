@@ -55,4 +55,13 @@ public class CommentController {
                 postId, commentId, commentDto, response.getBody());
         return response;
     }
+
+    // быть может, правильнее было бы возвращать NO_CONTENT?
+    @DeleteMapping("/{commentId}")
+    public ResponseEntity<Void> deletePostComment(@PathVariable Long postId, @PathVariable Long commentId) {
+        log.info("CommentController::deletePostComment {}: {} begins", postId, commentId);
+        commentService.deletePostComment(postId, commentId);
+        log.info("CommentController::deletePostComment {}: {} ends", postId, commentId);
+        return ResponseEntity.ok().build();
+    }
 }

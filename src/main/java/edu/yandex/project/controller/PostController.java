@@ -59,6 +59,7 @@ public class PostController {
         return response;
     }
 
+    // быть может, правильнее было бы возвращать NO_CONTENT?
     @DeleteMapping("/{postId}")
     public ResponseEntity<Void> deletePost(@PathVariable Long postId) {
         log.info("PostController::deletePost {} begins", postId);

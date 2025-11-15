@@ -135,4 +135,20 @@ public class CommentControllerIT extends AbstractControllerIT {
                 .andExpect(jsonPath("$.postId").value(commentBeforeUpdate.postId()))
                 .andExpect(jsonPath("$.text").value(updateDto.text()));
     }
+
+    @SqlGroup({
+            @Sql(executionPhase = BEFORE_TEST_METHOD, scripts = "classpath:sql/controller/comment/insert-single-post-with-5-comments.sql"),
+            @Sql(executionPhase = AFTER_TEST_METHOD, scripts = "classpath:sql/clean-env.sql"),
+    })
+    @Test
+    void deletePostComment_inCasePostAndCommentExists_success() throws Exception {
+        // given
+        var uri = MessageFormat.format(COMMENTS_ROOT_PATTERN, 1) + "/3";
+        // when
+        mockMvc.perform(delete(uri))
+                // then
+                .andExpect(status().isOk());
+        // and send GET to make sure, that delete commited to DB
+        mockMvc.perform(get(uri)).andExpect(status().isNotFound());
+    }
 }

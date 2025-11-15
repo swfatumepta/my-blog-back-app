@@ -15,4 +15,6 @@ public interface CommentRepository {
     CommentEntity save(@NonNull CommentEntity toBeSaved);
 
     Optional<CommentEntity> update(@NonNull CommentEntity toBeUpdated);
+
+    int deleteByPostIdAndCommentId(@NonNull Long postId, @NonNull Long commentId);
 }

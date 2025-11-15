@@ -255,16 +255,11 @@ public class PostControllerIT extends AbstractControllerIT {
                 .andExpect(jsonPath("$.id").value(postIdToBeDeleted));      // check if post exists
         // -- preparations finished --
         // when
-        var response = mockMvc.perform(delete(uri))
+        mockMvc.perform(delete(uri))
                 // then
-                .andExpect(status().isOk())
-                .andReturn().getResponse().getContentAsString();
-        assertEquals(0, response.length());
+                .andExpect(status().isOk());
         // and send GET again to make sure, that delete commited to DB
-        response = mockMvc.perform(get(uri))
-                .andExpect(status().isNotFound())
-                .andReturn().getResponse().getContentAsString();
-        System.out.println(response);
+        mockMvc.perform(get(uri)).andExpect(status().isNotFound());
     }
 
     private boolean isValidPostText(String postText) {

@@ -62,7 +62,7 @@ class CommentJdbcRepositoryIT extends AbstractJdbcRepositoryIT {
             @Sql(executionPhase = BEFORE_TEST_METHOD, scripts = "classpath:sql/repository/comment/insert-single-post-with-single-comment.sql"),
             @Sql(executionPhase = AFTER_TEST_METHOD, scripts = "classpath:sql/clean-env.sql")
     })
-    void update_nonExistentPostAndOrComment_dbDataMustNotBeUpdatd_and_noExceptionThrown(Long postId, Long commentId) {
+    void update_nonExistentPostAndOrComment_dbDataMustNotBeUpdated_and_noExceptionThrown(Long postId, Long commentId) {
         // given
         var updatedEntityData = new CommentEntity(commentId, postId, LocalDateTime.now().toString());
         // when
@@ -73,6 +73,41 @@ class CommentJdbcRepositoryIT extends AbstractJdbcRepositoryIT {
         assertNotEquals(
                 updatedEntityData.getText(),
                 commentJdbcRepository.findByPostIdAndCommentId(1L, 1L).orElseThrow().getText()
+        );
+    }
+
+    @CsvSource({
+            "1, 12345678",          // nonexistent post.id
+            "12345678, 1",          // nonexistent comment.id
+            "12345678, 12345678",   // nonexistent post.id && nonexistent comment.id
+    })
+    @ParameterizedTest
+    @SqlGroup({
+            @Sql(executionPhase = BEFORE_TEST_METHOD, scripts = "classpath:sql/repository/comment/insert-single-post-with-single-comment.sql"),
+            @Sql(executionPhase = AFTER_TEST_METHOD, scripts = "classpath:sql/clean-env.sql")
+    })
+    void deleteById_nonExistentPostAndOrComment_dbDataMustNotBeUpdated_and_noExceptionThrown(Long postId, Long commentId) {
+        // given
+        // when
+        int deletedRows = commentJdbcRepository.deleteByPostIdAndCommentId(postId, commentId);
+        // then
+        assertEquals(0, deletedRows);
+    }
+
+    @SqlGroup({
+            @Sql(executionPhase = BEFORE_TEST_METHOD, scripts = "classpath:sql/repository/comment/insert-single-post-with-single-comment.sql"),
+            @Sql(executionPhase = AFTER_TEST_METHOD, scripts = "classpath:sql/clean-env.sql")
+    })
+    @Test
+    void deleteById_success_existentPostDeletedFromDb() {
+        // given
+        var toBeDeleted = commentJdbcRepository.findByPostIdAndCommentId(1L, 1L).orElseThrow();
+        // when
+        int deletedRows = commentJdbcRepository.deleteByPostIdAndCommentId(toBeDeleted.getPostId(), toBeDeleted.getId());
+        // then
+        assertEquals(1, deletedRows);
+        assertTrue(
+                commentJdbcRepository.findByPostIdAndCommentId(toBeDeleted.getPostId(), toBeDeleted.getId()).isEmpty()
         );
     }
 }

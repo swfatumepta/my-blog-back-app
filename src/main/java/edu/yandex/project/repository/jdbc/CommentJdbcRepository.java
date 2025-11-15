@@ -89,6 +89,16 @@ public class CommentJdbcRepository implements CommentRepository {
         return Optional.ofNullable(updated);
     }
 
+    @Override
+    public int deleteByPostIdAndCommentId(@NonNull Long postId, @NonNull Long commentId) {
+        log.debug("CommentJdbcRepository::deleteByPostIdAndCommentId post.id = {}, comment.id = {} in", postId, commentId);
+        var sql = "DELETE FROM comments WHERE id = ? AND post_id = ?";
+        var deletedTotal = jdbcTemplate.update(sql, commentId, postId);
+        log.debug("CommentJdbcRepository::deleteByPostIdAndCommentId post.id = {}, comment.id = {} out. Number of deleted rows: {}",
+                postId, commentId, deletedTotal);
+        return deletedTotal;
+    }
+
     private static class CommentEntityRowMapper implements RowMapper<CommentEntity> {
         @Override
         public CommentEntity mapRow(@NonNull ResultSet rs, int rowNum) throws SQLException {

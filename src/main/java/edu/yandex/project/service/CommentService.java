@@ -16,4 +16,6 @@ public interface CommentService {
     CommentDto addPostComment(@NonNull Long postId, @NonNull CommentCreateDto commentCreateDto);
 
     CommentDto updatePostComment(@NonNull Long postId, @NonNull Long commentId, @NonNull CommentDto commentDto);
+
+    void deletePostComment(@NonNull Long postId, @NonNull Long commentId);
 }

@@ -150,8 +150,9 @@ class PostJdbcRepositoryIT extends AbstractJdbcRepositoryIT {
     void deleteById_nonExistentPost_noExceptionThrown() {
         // given
         // when
-        postJdbcRepository.deleteById(Long.MIN_VALUE);
-        // then success
+        int deletedRows = postJdbcRepository.deleteById(Long.MIN_VALUE);
+        // then
+        assertEquals(0, deletedRows);
     }
 
     @SqlGroup({

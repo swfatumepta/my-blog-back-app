@@ -86,6 +86,18 @@ public class CommentServiceImpl implements CommentService {
         return updateData;
     }
 
+    @Override
+    @Transactional
+    public void deletePostComment(@NonNull Long postId, @NonNull Long commentId) {
+        log.debug("CommentServiceImpl::delete post.id = {}, comment.id = {} in", postId, commentId);
+        int deletedRows = commentRepository.deleteByPostIdAndCommentId(postId, commentId);
+        if (deletedRows == 0) {
+            log.error("CommentServiceImpl::delete post.id = {} with comment.id = {} was not found", postId, commentId);
+            throw new CommentNotFoundException(postId, commentId);
+        }
+        log.debug("CommentServiceImpl::delete post.id = {}, comment.id = {} out", postId, commentId);
+    }
+
     private void validateDataConsistency(Long postId, Long commentId, CommentDto commentDto) {
         this.validateDataConsistency(postId, new CommentCreateDto(null, commentDto.postId()));
         if (!commentId.equals(commentDto.id())) {

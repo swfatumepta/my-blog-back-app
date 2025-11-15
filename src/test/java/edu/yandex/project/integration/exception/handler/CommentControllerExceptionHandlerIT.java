@@ -174,6 +174,23 @@ public class CommentControllerExceptionHandlerIT extends AbstractGlobalException
                 .andExpect(jsonPath("$.timestamp").isNotEmpty());
     }
 
+    @Test
+    void deletePostComment_handleCommentNotFoundException() throws Exception {
+        // given
+        var uri = MessageFormat.format(COMMENTS_ROOT_PATTERN, 1L) + "/1";
+        var expectedMessage = MessageFormat.format("Post.id = {0} do not have comment.id = {1}", 1, 1);
+        // when
+        when(mockedCommentRepository.deleteByPostIdAndCommentId(1L, 1L)).thenReturn(0);
+
+        mockMvc.perform(delete(uri))
+                // then
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.statusCode").value(HttpStatus.NOT_FOUND.value()))
+                .andExpect(jsonPath("$.message").value(expectedMessage))
+                .andExpect(jsonPath("$.path").value(uri))
+                .andExpect(jsonPath("$.timestamp").isNotEmpty());
+    }
+
     @SneakyThrows
     private static Stream<Arguments> commentController_updatePostComment_inconsistentRequestBodyProvider() {
         return Stream.of(
