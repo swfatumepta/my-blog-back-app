@@ -182,7 +182,7 @@ public class CommentControllerExceptionHandlerIT extends AbstractGlobalException
                         new TestCaseData(
                                 OBJECT_MAPPER.writeValueAsString(new CommentDto(2L, "", 1L)),
                                 HttpStatus.UNPROCESSABLE_ENTITY.value(),
-                                "Request path post.id != dto.postId"
+                                "Request path comment.id != dto.commentId"
                         )
                 ),
                 Arguments.arguments(
@@ -190,7 +190,7 @@ public class CommentControllerExceptionHandlerIT extends AbstractGlobalException
                         new TestCaseData(
                                 OBJECT_MAPPER.writeValueAsString(new CommentDto(1L, "", 2L)),
                                 HttpStatus.UNPROCESSABLE_ENTITY.value(),
-                                "Request path comment.id != dto.commentId"
+                                "Request path post.id != dto.postId"
                         )
                 )
         );
