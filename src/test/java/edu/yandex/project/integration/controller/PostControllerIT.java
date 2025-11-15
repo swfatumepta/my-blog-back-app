@@ -11,6 +11,7 @@ import org.springframework.test.context.jdbc.SqlGroup;
 import org.springframework.util.MultiValueMap;
 
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -157,7 +158,7 @@ public class PostControllerIT extends AbstractControllerIT {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.posts.length()").value(0));
         // check ends
-        var postCreateDto = new PostCreateDto("createPost_success", "void createPost_success() throws Exception");
+        var postCreateDto = new PostCreateDto("createPost_success", "void createPost_success() throws Exception", List.of("tag1"));
         var requestBody = objectMapper.writeValueAsString(postCreateDto);
         // when
         var afterCreateResponse = mockMvc.perform(post(POSTS_ROOT)
@@ -210,7 +211,8 @@ public class PostControllerIT extends AbstractControllerIT {
         var postUpdateDto = new PostUpdateDto(
                 postBeforeUpdate.id(),
                 postBeforeUpdate.title() + " -> TITLE_UPDATED",
-                "Совершенно иной текст. Да, и такое бывает!"
+                "Совершенно иной текст. Да, и такое бывает!",
+                List.of("tag1, tag2")
         );
         var requestUpdateBody = objectMapper.writeValueAsString(postUpdateDto);
         // -- preparations finished --

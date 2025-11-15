@@ -5,7 +5,6 @@ import edu.yandex.project.controller.dto.post.PostPageRequestParameters;
 import edu.yandex.project.controller.dto.post.PostUpdateDto;
 import edu.yandex.project.exception.handler.ErrorResponse;
 import lombok.SneakyThrows;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -16,6 +15,7 @@ import org.springframework.http.MediaType;
 import org.springframework.util.MultiValueMap;
 
 import java.text.MessageFormat;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Stream;
@@ -96,7 +96,7 @@ public class PostControllerExceptionHandlerIT extends AbstractGlobalExceptionHan
     void updatePost_handleInconsistentPostDataException() throws Exception {
         // given
         var uri = POSTS_ROOT + "/2";
-        var requestUpdateBody = OBJECT_MAPPER.writeValueAsString(new PostUpdateDto(1L, "", ""));
+        var requestUpdateBody = OBJECT_MAPPER.writeValueAsString(new PostUpdateDto(1L, "", "", List.of()));
         // when
         mockMvc.perform(put(uri)
                         .contentType(MediaType.APPLICATION_JSON)
@@ -113,7 +113,7 @@ public class PostControllerExceptionHandlerIT extends AbstractGlobalExceptionHan
     void updatePost_handlePostNotFoundException() throws Exception {
         // given
         var uri = POSTS_ROOT + "/1";
-        var requestUpdateBody = OBJECT_MAPPER.writeValueAsString(new PostUpdateDto(1L, "", ""));
+        var requestUpdateBody = OBJECT_MAPPER.writeValueAsString(new PostUpdateDto(1L, "", "", List.of()));
 
         var expectedErrMessage = MessageFormat.format("Post.id = {0} does not exist", 1L);
         // when
@@ -174,7 +174,7 @@ public class PostControllerExceptionHandlerIT extends AbstractGlobalExceptionHan
                 Arguments.arguments(
                         "PostUpdateDto.id is null",
                         new TestCaseData(
-                                OBJECT_MAPPER.writeValueAsString(new PostUpdateDto(null, "", "")),
+                                OBJECT_MAPPER.writeValueAsString(new PostUpdateDto(null, "", "", List.of())),
                                 HttpStatus.BAD_REQUEST.value(),
                                 "PostUpdateDto.id is required"
                         )
@@ -182,7 +182,7 @@ public class PostControllerExceptionHandlerIT extends AbstractGlobalExceptionHan
                 Arguments.arguments(
                         "PostUpdateDto.title is null",
                         new TestCaseData(
-                                OBJECT_MAPPER.writeValueAsString(new PostUpdateDto(1L, null, "")),
+                                OBJECT_MAPPER.writeValueAsString(new PostUpdateDto(1L, null, "", List.of())),
                                 HttpStatus.BAD_REQUEST.value(),
                                 "PostUpdateDto.title is required"
                         )
@@ -194,7 +194,9 @@ public class PostControllerExceptionHandlerIT extends AbstractGlobalExceptionHan
                                         new PostUpdateDto(
                                                 1L,
                                                 "Spring @ComponentScan: сканирует пакеты на наличие компонентов. Фильтрация по аннотациям, regex, кастомные фильтры. Важно: по умолчанию сканирует текущий пакет! Проблемы: дублирование бинов, конфликты сканирования, медленный старт при большом количестве классов.",
-                                                "")
+                                                "",
+                                                List.of()
+                                        )
                                 ),
                                 HttpStatus.BAD_REQUEST.value(),
                                 "PostUpdateDto.title max length = 255"
@@ -203,9 +205,17 @@ public class PostControllerExceptionHandlerIT extends AbstractGlobalExceptionHan
                 Arguments.arguments(
                         "PostUpdateDto.text is null",
                         new TestCaseData(
-                                OBJECT_MAPPER.writeValueAsString(new PostUpdateDto(1L, "", null)),
+                                OBJECT_MAPPER.writeValueAsString(new PostUpdateDto(1L, "", null, List.of())),
                                 HttpStatus.BAD_REQUEST.value(),
                                 "PostUpdateDto.text is required"
+                        )
+                ),
+                Arguments.arguments(
+                        "PostUpdateDto.tags is null",
+                        new TestCaseData(
+                                OBJECT_MAPPER.writeValueAsString(new PostUpdateDto(1L, "", "", null)),
+                                HttpStatus.BAD_REQUEST.value(),
+                                "PostUpdateDto.tags is required"
                         )
                 )
         );
@@ -221,7 +231,7 @@ public class PostControllerExceptionHandlerIT extends AbstractGlobalExceptionHan
                 Arguments.arguments(
                         "PostCreateDto.title is null",
                         new TestCaseData(
-                                OBJECT_MAPPER.writeValueAsString(new PostCreateDto(null, "")),
+                                OBJECT_MAPPER.writeValueAsString(new PostCreateDto(null, "", List.of())),
                                 HttpStatus.BAD_REQUEST.value(),
                                 "PostCreateDto.title is required"
                         )
@@ -232,7 +242,9 @@ public class PostControllerExceptionHandlerIT extends AbstractGlobalExceptionHan
                                 OBJECT_MAPPER.writeValueAsString(
                                         new PostCreateDto(
                                                 "Spring @ComponentScan: сканирует пакеты на наличие компонентов. Фильтрация по аннотациям, regex, кастомные фильтры. Важно: по умолчанию сканирует текущий пакет! Проблемы: дублирование бинов, конфликты сканирования, медленный старт при большом количестве классов.",
-                                                "")
+                                                "",
+                                                List.of()
+                                        )
                                 ),
                                 HttpStatus.BAD_REQUEST.value(),
                                 "PostCreateDto.title max length = 255"
@@ -241,9 +253,17 @@ public class PostControllerExceptionHandlerIT extends AbstractGlobalExceptionHan
                 Arguments.arguments(
                         "PostCreateDto.text is null",
                         new TestCaseData(
-                                OBJECT_MAPPER.writeValueAsString(new PostCreateDto("", null)),
+                                OBJECT_MAPPER.writeValueAsString(new PostCreateDto("", null, List.of())),
                                 HttpStatus.BAD_REQUEST.value(),
                                 "PostCreateDto.text is required"
+                        )
+                ),
+                Arguments.arguments(
+                        "PostCreateDto.tags is null",
+                        new TestCaseData(
+                                OBJECT_MAPPER.writeValueAsString(new PostCreateDto("", "", null)),
+                                HttpStatus.BAD_REQUEST.value(),
+                                "PostCreateDto.tags is required"
                         )
                 )
         );

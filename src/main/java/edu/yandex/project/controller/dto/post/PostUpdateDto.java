@@ -1,8 +1,9 @@
 package edu.yandex.project.controller.dto.post;
 
-import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
+
+import java.util.List;
 
 public record PostUpdateDto(@NotNull(message = "PostUpdateDto.id is required")
                             Long id,
@@ -12,8 +13,8 @@ public record PostUpdateDto(@NotNull(message = "PostUpdateDto.id is required")
                             String title,
 
                             @NotNull(message = "PostUpdateDto.text is required")
-                            String text) {
-// todo
-//                            @NotNull(message = "PostUpdateDto.tags is required")
-//                            List<String> tags) {
+                            String text,
+
+                            @NotNull(message = "PostUpdateDto.tags is required")
+                            List<String> tags) {
 }
