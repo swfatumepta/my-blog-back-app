@@ -1,7 +1,7 @@
 package edu.yandex.project.controller;
 
 import edu.yandex.project.controller.dto.post.*;
-import edu.yandex.project.service.MultipartService;
+import edu.yandex.project.service.PostImageService;
 import edu.yandex.project.service.PostService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -17,7 +17,7 @@ import org.springframework.web.multipart.MultipartFile;
 @RestController
 public class PostController {
 
-    private final MultipartService multipartService;
+    private final PostImageService multipartService;
     private final PostService postService;
 
     @GetMapping

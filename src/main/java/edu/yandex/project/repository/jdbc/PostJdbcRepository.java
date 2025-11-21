@@ -199,6 +199,15 @@ public class PostJdbcRepository implements PostRepository {
         return deletedTotal;
     }
 
+    @Override
+    public boolean isExistById(@NonNull Long postId) {
+        log.debug("PostJdbcRepository::isExistById {} in", postId);
+        var sql = "SELECT EXISTS(SELECT 1 FROM posts WHERE id = ?)";
+        Boolean exists = jdbcTemplate.queryForObject(sql, Boolean.class, postId);
+        log.debug("PostJdbcRepository::isExistById {} out. Result: {}", postId, Boolean.TRUE.equals(exists));
+        return Boolean.TRUE.equals(exists);
+    }
+
     private static class PostEntityPageExtractor implements ResultSetExtractor<PostEntityPage> {
         @Override
         public PostEntityPage extractData(@NonNull ResultSet rs) throws SQLException, DataAccessException {

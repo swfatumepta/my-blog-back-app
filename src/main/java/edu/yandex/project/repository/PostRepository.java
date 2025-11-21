@@ -20,4 +20,6 @@ public interface PostRepository {
     Optional<Integer> incrementLikesCountById(@NonNull Long postId);
 
     int deleteById(@NonNull Long postId);
+
+    boolean isExistById(@NonNull Long postId);
 }
