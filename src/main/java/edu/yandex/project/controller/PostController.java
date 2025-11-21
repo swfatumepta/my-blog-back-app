@@ -6,7 +6,9 @@ import edu.yandex.project.service.PostService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.core.io.Resource;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -17,7 +19,7 @@ import org.springframework.web.multipart.MultipartFile;
 @RestController
 public class PostController {
 
-    private final PostImageService multipartService;
+    private final PostImageService postImageService;
     private final PostService postService;
 
     @GetMapping
@@ -71,11 +73,21 @@ public class PostController {
         return ResponseEntity.ok().build();
     }
 
-    @PutMapping("/{postId}/images")
+    @PutMapping("/{postId}/image")
     public ResponseEntity<Void> addPostImage(@PathVariable Long postId, @RequestParam("file") MultipartFile file) {
         log.info("PostController::addPostImage {}, {} begins", postId, file);
-        multipartService.uploadPostImage(postId, file);
+        postImageService.upload(postId, file);
         log.info("PostController::addPostImage {}, {} ends", postId, file);
         return ResponseEntity.ok().build();
+    }
+
+    @GetMapping("/{postId}/image")
+    public ResponseEntity<Resource> getPostImage(@PathVariable Long postId) {
+        log.info("PostController::getPostImage {} begins", postId);
+        var response = ResponseEntity.ok()
+                .contentType(MediaType.APPLICATION_OCTET_STREAM)
+                .body(postImageService.download(postId));
+        log.info("PostController::getPostImage {} ends. Result: {}", postId, response.getBody());
+        return response;
     }
 }
