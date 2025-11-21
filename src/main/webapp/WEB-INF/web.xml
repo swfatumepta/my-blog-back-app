@@ -19,6 +19,11 @@
             <param-value>edu.yandex.project.config.AppConfig</param-value>
         </init-param>
         <load-on-startup>1</load-on-startup>
+
+        <multipart-config>
+            <max-file-size>1048576</max-file-size> <!-- 1MB -->
+            <max-request-size>20971520</max-request-size> <!-- 2MB -->
+        </multipart-config>
     </servlet>
     <!-- DispatcherServlet обрабатывает все запросы -->
     <servlet-mapping>

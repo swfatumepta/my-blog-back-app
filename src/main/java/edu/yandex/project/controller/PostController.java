@@ -1,6 +1,7 @@
 package edu.yandex.project.controller;
 
 import edu.yandex.project.controller.dto.post.*;
+import edu.yandex.project.service.MultipartService;
 import edu.yandex.project.service.PostService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -8,6 +9,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 @RequiredArgsConstructor
 @Slf4j
@@ -15,6 +17,7 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 public class PostController {
 
+    private final MultipartService multipartService;
     private final PostService postService;
 
     @GetMapping
@@ -65,6 +68,14 @@ public class PostController {
         log.info("PostController::deletePost {} begins", postId);
         postService.delete(postId);
         log.info("PostController::deletePost {} ends", postId);
+        return ResponseEntity.ok().build();
+    }
+
+    @PutMapping("/{postId}/images")
+    public ResponseEntity<Void> addPostImage(@PathVariable Long postId, @RequestParam("file") MultipartFile file) {
+        log.info("PostController::addPostImage {}, {} begins", postId, file);
+        multipartService.uploadPostImage(postId, file);
+        log.info("PostController::addPostImage {}, {} ends", postId, file);
         return ResponseEntity.ok().build();
     }
 }

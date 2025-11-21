@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.context.request.ServletWebRequest;
 import org.springframework.web.context.request.WebRequest;
+import org.springframework.web.multipart.MultipartException;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
 import java.time.LocalDateTime;
@@ -58,10 +59,21 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
                                                                     @NonNull WebRequest request) {
         log.warn("GlobalExceptionHandler::handleAbstractProjectException {} in", exc.toString());
         var errorResponse = new ErrorResponse(
-                exc.getHttpStatus().value(), exc.getMessage(), extractRequestPath(request), LocalDateTime.now()
+                exc.getHttpStatus().value(), exc.getLocalizedMessage(), extractRequestPath(request), LocalDateTime.now()
         );
         log.debug("GlobalExceptionHandler::handleAbstractProjectException {} out", exc.toString());
         return new ResponseEntity<>(errorResponse, exc.getHttpStatus());
+    }
+
+    @ExceptionHandler(MultipartException.class)
+    protected ResponseEntity<Object> handleMultipartException(MultipartException exc,
+                                                              @NonNull WebRequest request) {
+        log.warn("GlobalExceptionHandler::handleMultipartException {} in", exc.toString());
+        var errorResponse = new ErrorResponse(
+                HttpStatus.UNPROCESSABLE_ENTITY.value(), exc.getLocalizedMessage(), extractRequestPath(request), LocalDateTime.now()
+        );
+        log.debug("GlobalExceptionHandler::handleMultipartException {} out", exc.toString());
+        return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
     }
 
     private static String extractRequestPath(WebRequest webRequest) {
