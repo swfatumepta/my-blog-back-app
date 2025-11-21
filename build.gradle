@@ -70,7 +70,9 @@ dependencies {
     // logging
     implementation "org.slf4j:slf4j-api:${versions.slf4j}"
     implementation "ch.qos.logback:logback-classic:${versions.logback}"
+    // -----------------
     // test dependencies
+    // -----------------
     // lombok
     testCompileOnly "org.projectlombok:lombok:${versions.lombok}"
     testAnnotationProcessor "org.projectlombok:lombok:${versions.lombok}"
