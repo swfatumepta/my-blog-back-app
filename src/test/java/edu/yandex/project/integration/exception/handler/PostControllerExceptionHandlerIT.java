@@ -10,8 +10,10 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.util.MultiValueMap;
 
 import java.text.MessageFormat;
@@ -156,6 +158,48 @@ public class PostControllerExceptionHandlerIT extends AbstractGlobalExceptionHan
         when(mockedPostRepository.deleteById(1L)).thenReturn(0);
 
         mockMvc.perform(delete(uri).contentType(MediaType.APPLICATION_JSON))
+                // then
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.statusCode").value(HttpStatus.NOT_FOUND.value()))
+                .andExpect(jsonPath("$.message").value(expectedErrMessage))
+                .andExpect(jsonPath("$.path").value(uri))
+                .andExpect(jsonPath("$.timestamp").isNotEmpty());
+    }
+
+    @Test
+    void addPostImage_handlePostNotFoundException() throws Exception {
+        // given
+        var uri = POSTS_ROOT + "/1/image";
+        var postImage = new MockMultipartFile(
+                "file", "post_image",
+                "image/jpeg", new byte[0]
+        );
+        var expectedErrMessage = MessageFormat.format("Post.id = {0} does not exist", 1L);
+        // when
+        when(mockedPostRepository.isExistById(1L)).thenReturn(false);
+
+        mockMvc.perform(multipart(HttpMethod.PUT, uri).file(postImage))
+                // then
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.statusCode").value(HttpStatus.NOT_FOUND.value()))
+                .andExpect(jsonPath("$.message").value(expectedErrMessage))
+                .andExpect(jsonPath("$.path").value(uri))
+                .andExpect(jsonPath("$.timestamp").isNotEmpty());
+    }
+
+    @Test
+    void getPostImage_handlePostNotFoundException() throws Exception {
+        // given
+        var uri = POSTS_ROOT + "/1/image";
+        var postImage = new MockMultipartFile(
+                "file", "post_image",
+                "image/jpeg", new byte[0]
+        );
+        var expectedErrMessage = MessageFormat.format("Post.id = {0} does not exist", 1L);
+        // when
+        when(mockedPostRepository.isExistById(1L)).thenReturn(false);
+
+        mockMvc.perform(get(uri))
                 // then
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.statusCode").value(HttpStatus.NOT_FOUND.value()))
