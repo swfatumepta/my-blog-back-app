@@ -86,6 +86,7 @@ dependencies {
     testImplementation "com.jayway.jsonpath:json-path:${versions.jayway}"
     // junit
     testImplementation platform("org.junit:junit-bom:${versions.junit}")
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
     testImplementation 'org.junit.jupiter:junit-jupiter'
     // mockito
     testImplementation "org.mockito:mockito-junit-jupiter:${versions.junit}"
