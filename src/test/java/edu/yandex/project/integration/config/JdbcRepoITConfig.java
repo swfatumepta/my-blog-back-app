@@ -4,12 +4,9 @@ import edu.yandex.project.config.DataSourceConfig;
 import org.springframework.context.annotation.*;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
-@ComponentScan(
-        basePackages = "edu.yandex.project.repository.jdbc",
-        excludeFilters = @ComponentScan.Filter(type = FilterType.REGEX, pattern = "edu.yandex.project.config.*")
-)
+@ComponentScan("edu.yandex.project.repository.jdbc")
 @Configuration
 @EnableTransactionManagement
-@PropertySource("classpath:application-test.properties")
-public class JdbcRepoITConfig extends DataSourceConfig {
+@Import(DataSourceConfig.class)
+public class JdbcRepoITConfig {
 }
