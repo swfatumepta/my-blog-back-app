@@ -191,10 +191,6 @@ public class PostControllerExceptionHandlerIT extends AbstractGlobalExceptionHan
     void getPostImage_handlePostNotFoundException() throws Exception {
         // given
         var uri = POSTS_ROOT + "/1/image";
-        var postImage = new MockMultipartFile(
-                "file", "post_image",
-                "image/jpeg", new byte[0]
-        );
         var expectedErrMessage = MessageFormat.format("Post.id = {0} does not exist", 1L);
         // when
         when(mockedPostRepository.isExistById(1L)).thenReturn(false);
@@ -319,7 +315,7 @@ public class PostControllerExceptionHandlerIT extends AbstractGlobalExceptionHan
                         "request parameter 'search' not sent",
                         new TestCaseData(
                                 Map.of(
-                                        PostPageRequestParameters.Fields.pageNumber, "0",
+                                        PostPageRequestParameters.Fields.pageNumber, "1",
                                         PostPageRequestParameters.Fields.pageSize, "100"
                                 ),
                                 HttpStatus.BAD_REQUEST.value(),
@@ -331,7 +327,7 @@ public class PostControllerExceptionHandlerIT extends AbstractGlobalExceptionHan
                         new TestCaseData(
                                 Map.of(
                                         PostPageRequestParameters.Fields.search, "",
-                                        PostPageRequestParameters.Fields.pageNumber, "0"
+                                        PostPageRequestParameters.Fields.pageNumber, "1"
                                 ),
                                 HttpStatus.BAD_REQUEST.value(),
                                 "request parameter 'pageSize' is required"
@@ -360,7 +356,7 @@ public class PostControllerExceptionHandlerIT extends AbstractGlobalExceptionHan
                                         PostPageRequestParameters.Fields.pageSize, "100"
                                 ),
                                 HttpStatus.BAD_REQUEST.value(),
-                                "pageNumber must be >= 0"
+                                "pageNumber must be > 0"
                         )
                 ),
                 Arguments.arguments(
@@ -368,7 +364,7 @@ public class PostControllerExceptionHandlerIT extends AbstractGlobalExceptionHan
                         new TestCaseData(
                                 Map.of(
                                         PostPageRequestParameters.Fields.search, "",
-                                        PostPageRequestParameters.Fields.pageNumber, "0",
+                                        PostPageRequestParameters.Fields.pageNumber, "1",
                                         PostPageRequestParameters.Fields.pageSize, "0"
                                 ),
                                 HttpStatus.BAD_REQUEST.value(),
@@ -380,7 +376,7 @@ public class PostControllerExceptionHandlerIT extends AbstractGlobalExceptionHan
                         new TestCaseData(
                                 Map.of(
                                         PostPageRequestParameters.Fields.search, "",
-                                        PostPageRequestParameters.Fields.pageNumber, "0",
+                                        PostPageRequestParameters.Fields.pageNumber, "1",
                                         PostPageRequestParameters.Fields.pageSize, "101"
                                 ),
                                 HttpStatus.BAD_REQUEST.value(),

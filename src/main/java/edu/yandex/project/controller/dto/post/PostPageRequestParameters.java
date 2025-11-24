@@ -10,7 +10,7 @@ public record PostPageRequestParameters(@NotNull(message = "request parameter 's
                                         String search,
 
                                         @NotNull(message = "request parameter 'pageNumber' is required")
-                                        @Min(value = 0, message = "pageNumber must be >= 0")
+                                        @Min(value = 1, message = "pageNumber must be > 0")
                                         Integer pageNumber,
 
                                         @NotNull(message = "request parameter 'pageSize' is required")

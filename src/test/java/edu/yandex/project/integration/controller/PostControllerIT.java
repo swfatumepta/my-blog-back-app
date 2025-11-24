@@ -35,13 +35,13 @@ public class PostControllerIT extends AbstractControllerIT {
         var search = "";     // empty filter -> all posts matches the pattern
         var pageSize = "5";
 
-        var firstPageNo = "0";
+        var firstPageNo = "1";
         var firstPageRequestParams = Map.of(
                 PostPageRequestParameters.Fields.search, search,
                 PostPageRequestParameters.Fields.pageNumber, firstPageNo,
                 PostPageRequestParameters.Fields.pageSize, pageSize
         );
-        var secondPageNo = "1";
+        var secondPageNo = "2";
         var secondPageRequestParams = Map.of(
                 PostPageRequestParameters.Fields.search, search,
                 PostPageRequestParameters.Fields.pageNumber, secondPageNo,
@@ -105,8 +105,8 @@ public class PostControllerIT extends AbstractControllerIT {
     void getPosts_inCaseNothingFound_success() throws Exception {
         // given
         var search = "!!!!";    // no matches
+        var firstPageNo = "1";
         var pageSize = "5";
-        var firstPageNo = "0";
         var requestParams = Map.of(
                 PostPageRequestParameters.Fields.search, search,
                 PostPageRequestParameters.Fields.pageNumber, firstPageNo,
@@ -131,8 +131,8 @@ public class PostControllerIT extends AbstractControllerIT {
     void getPosts_inCaseSinglePostFound_success() throws Exception {
         // given
         var search = "кст длинной 150 сим";    // exactly one match
+        var firstPageNo = "1";
         var pageSize = "100";
-        var firstPageNo = "0";
         var requestParams = Map.of(
                 PostPageRequestParameters.Fields.search, search,
                 PostPageRequestParameters.Fields.pageNumber, firstPageNo,
@@ -159,7 +159,7 @@ public class PostControllerIT extends AbstractControllerIT {
         // check if there are no post in db present
         var requestParams = Map.of(
                 PostPageRequestParameters.Fields.search, "",
-                PostPageRequestParameters.Fields.pageNumber, "0",
+                PostPageRequestParameters.Fields.pageNumber, "1",
                 PostPageRequestParameters.Fields.pageSize, "100"
         );
         mockMvc.perform(get(POSTS_ROOT).params(MultiValueMap.fromSingleValue(requestParams)))

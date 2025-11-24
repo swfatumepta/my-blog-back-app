@@ -35,7 +35,7 @@ public class PostServiceImpl implements PostService {
     @Transactional(readOnly = true)
     public PostPageDto findAll(@NonNull PostPageRequestParameters parameters) {
         log.debug("PostServiceImpl::findAll {} in", parameters);
-        int offset = parameters.pageNumber() * parameters.pageSize();
+        int offset = (parameters.pageNumber() - 1) * parameters.pageSize();
         var textAndTagsFilters = this.getTextAndTagsFilters(parameters.search());
         var postEntityPage = postRepository.findAll(
                 textAndTagsFilters.searchString,
