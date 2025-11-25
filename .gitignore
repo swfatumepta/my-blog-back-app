@@ -36,4 +36,6 @@ bin/
 .vscode/
 ### Mac OS ###
 .DS_Store
+# my-blog-back-app
 /db_data/
+/image/

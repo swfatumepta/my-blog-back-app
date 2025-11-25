@@ -9,6 +9,8 @@ services:
     ports:
       - "8080:8080"
       - "8000:8000"
+    volumes:
+      - ./image:/usr/local/tomcat/src/main/resources/images
     networks:
       - ftmpt-blog
     depends_on:
