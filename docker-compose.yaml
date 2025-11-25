@@ -1,6 +1,19 @@
-version: '3.8'
-
 services:
+  blog-app:
+    build: .
+    restart: unless-stopped
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/ya_blog
+      - SPRING_DATASOURCE_USERNAME=root
+      - SPRING_DATASOURCE_PASSWORD=root
+    ports:
+      - "8080:8080"
+      - "8000:8000"
+    networks:
+      - ftmpt-blog
+    depends_on:
+      - postgres
+
   postgres:
     image: postgres:16.11-alpine3.22
     restart: unless-stopped

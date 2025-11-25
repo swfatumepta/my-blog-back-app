@@ -36,3 +36,4 @@ bin/
 .vscode/
 ### Mac OS ###
 .DS_Store
+/db_data/
