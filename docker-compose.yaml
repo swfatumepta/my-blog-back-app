@@ -1,0 +1,35 @@
+services:
+  blog-app:
+    build: .
+    restart: unless-stopped
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/ya_blog
+      - SPRING_DATASOURCE_USERNAME=root
+      - SPRING_DATASOURCE_PASSWORD=root
+    ports:
+      - "8080:8080"
+      - "8000:8000"
+    volumes:
+      - ./image:/usr/local/tomcat/src/main/resources/images
+    networks:
+      - ftmpt-blog
+    depends_on:
+      - postgres
+
+  postgres:
+    image: postgres:16.11-alpine3.22
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: root
+      POSTGRES_PASSWORD: root
+      POSTGRES_DB: ya_blog
+    ports:
+      - "5433:5432"
+    volumes:
+      - ./db_data:/var/lib/postgresql/data
+    networks:
+      - ftmpt-blog
+
+networks:
+  ftmpt-blog:
+    driver: bridge
