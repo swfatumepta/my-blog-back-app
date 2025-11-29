@@ -22,6 +22,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @Tag("Integration tests for PostController")
 public class PostControllerIT extends AbstractControllerIT {
+    private final static long SINGLE_POST_ID = 999;
     private final static String POSTS_ROOT = "/api/posts";
 
     @SqlGroup({
@@ -205,11 +206,11 @@ public class PostControllerIT extends AbstractControllerIT {
     @Test
     void updatePost_inCasePostExists_success() throws Exception {
         // given
-        var uri = POSTS_ROOT + "/" + 1;
+        var uri = POSTS_ROOT + "/" + SINGLE_POST_ID;
 
         var responseBeforeUpdate = mockMvc.perform(get(uri))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").value(1))
+                .andExpect(jsonPath("$.id").value(SINGLE_POST_ID))
                 .andExpect(jsonPath("$.title").value("Тестовый заголовок 1"))
                 .andExpect(jsonPath("$.text").value("Это текст первого тестового поста."))
                 .andExpect(jsonPath("$.likesCount").value(42))
@@ -263,7 +264,7 @@ public class PostControllerIT extends AbstractControllerIT {
     @Test
     void addPostLike_inCasePostExists_success() throws Exception {
         // given
-        var uriGET = POSTS_ROOT + "/" + 1;
+        var uriGET = POSTS_ROOT + "/" + SINGLE_POST_ID;
 
         var response = mockMvc.perform(get(uriGET))
                 .andExpect(status().isOk())
@@ -294,7 +295,7 @@ public class PostControllerIT extends AbstractControllerIT {
     @Test
     void deletePost_inCasePostExists_success() throws Exception {
         // given
-        var postIdToBeDeleted = "1";
+        var postIdToBeDeleted = SINGLE_POST_ID;
         var uri = POSTS_ROOT + "/" + postIdToBeDeleted;
 
         mockMvc.perform(get(uri))

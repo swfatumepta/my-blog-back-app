@@ -4,18 +4,23 @@ import edu.yandex.project.integration.AbstractDbIT;
 import edu.yandex.project.repository.jdbc.CommentJdbcRepository;
 import edu.yandex.project.repository.jdbc.PostJdbcRepository;
 import edu.yandex.project.repository.jdbc.TagJdbcRepository;
-import org.springframework.boot.test.autoconfigure.data.jdbc.DataJdbcTest;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
+import org.springframework.boot.test.autoconfigure.jdbc.JdbcTest;
 import org.springframework.context.annotation.Import;
-import org.springframework.test.context.ActiveProfiles;
 
-@ActiveProfiles("test")
+@Slf4j
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
-@DataJdbcTest
-@Import({
-        CommentJdbcRepository.class,
-        PostJdbcRepository.class,
-        TagJdbcRepository.class
-})
+@Import({CommentJdbcRepository.class, PostJdbcRepository.class, TagJdbcRepository.class})
+@JdbcTest
 public class AbstractJdbcRepositoryIT extends AbstractDbIT {
+    protected final static long DEFAULT_ID = 777L;
+
+    @Autowired
+    protected CommentJdbcRepository commentJdbcRepository;
+    @Autowired
+    protected PostJdbcRepository postJdbcRepository;
+    @Autowired
+    protected TagJdbcRepository tagJdbcRepository;
 }

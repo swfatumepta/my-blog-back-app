@@ -1,9 +1,7 @@
 package edu.yandex.project.integration.controller;
 
-import edu.yandex.project.service.ImageService;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.InitializingBean;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
@@ -31,12 +29,10 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 })
 @Tag("Integration tests for PostController - upload/download post image")
 public class PostImageWorkWithIT extends AbstractControllerIT {
-    private final static String POST_IMAGE_URI = "/api/posts/1/image";
+    private final static long POST_ID = 999;
+    private final static String POST_IMAGE_URI = "/api/posts/" + POST_ID + "/image";
     private final static String TEST_IMAGE_1_LOCATION = "image/test_image.jpg";
     private final static String TEST_IMAGE_2_LOCATION = "image/test_image_2.jpg";
-
-    @Autowired
-    private ImageService imageService;
 
     private Path tempImageDir;
 
@@ -84,7 +80,6 @@ public class PostImageWorkWithIT extends AbstractControllerIT {
 
         var downloadedPostImage = response.getResponse().getContentAsByteArray();
         assertArrayEquals(uploadingPostImage, downloadedPostImage);
-
     }
 
     @Test
@@ -142,7 +137,7 @@ public class PostImageWorkWithIT extends AbstractControllerIT {
         var savedImageExtension = ReflectionTestUtils.getField(imageService, "imageExtension");
         assertNotNull(savedImageExtension);
 
-        var expectedImageName = MessageFormat.format(savedImageNamePattern.toString(), 1, savedImageExtension);    // Post.id is 1L -> 1
+        var expectedImageName = MessageFormat.format(savedImageNamePattern.toString(), POST_ID, savedImageExtension);
         var expectedSavedImagePath = Paths.get(tempImageDir + "/" + expectedImageName);
         assertTrue(Files.exists(expectedSavedImagePath));
     }

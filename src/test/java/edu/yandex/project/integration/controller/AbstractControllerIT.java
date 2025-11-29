@@ -3,14 +3,15 @@ package edu.yandex.project.integration.controller;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import edu.yandex.project.factory.PostFactory;
 import edu.yandex.project.integration.AbstractDbIT;
+import edu.yandex.project.service.ImageService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 
-@ActiveProfiles("test")
 @AutoConfigureMockMvc
+@ActiveProfiles("test")
 @SpringBootTest
 public abstract class AbstractControllerIT extends AbstractDbIT {
 
@@ -19,6 +20,8 @@ public abstract class AbstractControllerIT extends AbstractDbIT {
     @Autowired
     protected MockMvc mockMvc;
 
+    @Autowired
+    protected ImageService imageService;
     @Autowired
     protected PostFactory postFactory;
 }
