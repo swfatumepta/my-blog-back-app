@@ -1,7 +1,6 @@
 package edu.yandex.project.integration.controller;
 
 import edu.yandex.project.controller.dto.post.*;
-import edu.yandex.project.factory.PostFactory;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -310,9 +309,9 @@ public class PostControllerIT extends AbstractControllerIT {
         mockMvc.perform(get(uri)).andExpect(status().isNotFound());
     }
 
-    private boolean isValidPostText(String postText) {
-        int maxPostTextSize = webApplicationContext.getBean(PostFactory.class).getTextMaxSize();
-        var textLengthOverlimitStub = webApplicationContext.getBean(PostFactory.class).getTextLengthOverlimitStub();
+    protected boolean isValidPostText(String postText) {
+        int maxPostTextSize = postFactory.getTextMaxSize();
+        var textLengthOverlimitStub = postFactory.getTextLengthOverlimitStub();
         boolean hasAllowedLength = postText.length() < maxPostTextSize;
         boolean isCut = postText.contains(textLengthOverlimitStub)
                 && (postText.length() == maxPostTextSize + textLengthOverlimitStub.length());

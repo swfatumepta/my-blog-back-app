@@ -2,32 +2,40 @@ package edu.yandex.project.integration.exception.handler;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import edu.yandex.project.integration.config.GlobalExceptionHandlerITConfig;
+import edu.yandex.project.controller.CommentController;
+import edu.yandex.project.controller.PostController;
+import edu.yandex.project.factory.PostFactory;
+import edu.yandex.project.repository.CommentRepository;
 import edu.yandex.project.repository.PostRepository;
-import org.junit.jupiter.api.BeforeEach;
+import edu.yandex.project.repository.TagRepository;
+import edu.yandex.project.service.impl.CommentServiceImpl;
+import edu.yandex.project.service.impl.ImageServiceImpl;
+import edu.yandex.project.service.impl.PostServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.junit.jupiter.web.SpringJUnitWebConfig;
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.context.annotation.*;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.setup.MockMvcBuilders;
-import org.springframework.web.context.WebApplicationContext;
 
-@ActiveProfiles("exception")
-@SpringJUnitWebConfig(GlobalExceptionHandlerITConfig.class)
+@Import({
+        CommentServiceImpl.class,
+        ImageServiceImpl.class,
+        PostFactory.class,
+        PostServiceImpl.class
+})
+@WebMvcTest({CommentController.class, PostController.class})
 public abstract class AbstractGlobalExceptionHandlerIT {
+
     protected static final ObjectMapper OBJECT_MAPPER = new ObjectMapper()
             .registerModule(new JavaTimeModule());
 
     @Autowired
-    protected WebApplicationContext webApplicationContext;
-
-    @Autowired
-    protected PostRepository mockedPostRepository;
-
     protected MockMvc mockMvc;
 
-    @BeforeEach
-    void init() {
-        mockMvc = MockMvcBuilders.webAppContextSetup(webApplicationContext).build();
-    }
+    @MockitoBean
+    protected CommentRepository mockedCommentRepository;
+    @MockitoBean
+    protected PostRepository mockedPostRepository;
+    @MockitoBean
+    protected TagRepository tagRepository;
 }

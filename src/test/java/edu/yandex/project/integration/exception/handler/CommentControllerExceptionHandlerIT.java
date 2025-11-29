@@ -3,14 +3,12 @@ package edu.yandex.project.integration.exception.handler;
 import edu.yandex.project.controller.dto.comment.CommentCreateDto;
 import edu.yandex.project.controller.dto.comment.CommentDto;
 import edu.yandex.project.exception.handler.ErrorResponse;
-import edu.yandex.project.repository.CommentRepository;
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 
@@ -28,9 +26,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @Tag("CommentController exception handler integration test")
 public class CommentControllerExceptionHandlerIT extends AbstractGlobalExceptionHandlerIT {
     private final static String COMMENTS_ROOT_PATTERN = "/api/posts/{0}/comments";
-
-    @Autowired
-    private CommentRepository mockedCommentRepository;
 
     @MethodSource("commentController_createPostComment_invalidRequestBodyProvider")
     @ParameterizedTest(name = "CommentController::createPostComment -> {0}")

@@ -2,6 +2,7 @@ package edu.yandex.project.integration.controller;
 
 import edu.yandex.project.service.ImageService;
 import org.junit.jupiter.api.*;
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.http.HttpMethod;
@@ -40,12 +41,11 @@ public class PostImageWorkWithIT extends AbstractControllerIT {
     private Path tempImageDir;
 
     @BeforeEach
-    void initImageDir() throws IOException {
-        tempImageDir = Paths.get("src/test/resources/image/to_be_deleted");
-        if (Files.exists(tempImageDir)) {
-            FileSystemUtils.deleteRecursively(tempImageDir);
-        }
-        Files.createDirectories(tempImageDir);
+    void initImageDir() throws Exception {
+        var imageStoragePath = (String) ReflectionTestUtils.getField(imageService, "imageStoragePath");
+        assertNotNull(imageStoragePath);
+        tempImageDir = Paths.get(imageStoragePath);
+        ((InitializingBean) imageService).afterPropertiesSet(); // creates image storage
     }
 
     @AfterEach

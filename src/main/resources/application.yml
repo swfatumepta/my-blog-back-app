@@ -1,0 +1,32 @@
+spring:
+  application:
+    name: my-blog-back-app
+
+  datasource:
+    url: jdbc:postgresql://localhost:5433/ya_blog
+    username: root
+    password: root
+    driver-class-name: org.postgresql.Driver
+
+    hikari:
+      max-lifetime: 120000            # 2 min
+      idle-timeout: 60000             # 1 min
+      leak-detection-threshold: 30000 # 30 sec
+
+  liquibase:
+    change-log: classpath:db/changelog/db.changelog-master.xml
+    drop-first: false
+    enabled: true
+
+post:
+  image:
+    dir: src/main/resources/images/
+    extension: .jpg
+    name:
+      pattern: post_id_{0}{1}
+  text:
+    size:
+      max: 128
+    length:
+      overlimit:
+        stub: ...
