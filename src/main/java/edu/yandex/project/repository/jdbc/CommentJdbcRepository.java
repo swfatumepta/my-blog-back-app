@@ -5,22 +5,23 @@ import edu.yandex.project.repository.CommentRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.EmptyResultDataAccessException;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Repository;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
+@Repository
 @RequiredArgsConstructor
 @Slf4j
-@Repository
 public class CommentJdbcRepository implements CommentRepository {
 
-    private final JdbcTemplate jdbcTemplate;
+    private final NamedParameterJdbcTemplate namedParameterJdbcTemplate;
 
     @Override
     public List<CommentEntity> findAllByPostId(@NonNull Long postId) {
@@ -28,10 +29,10 @@ public class CommentJdbcRepository implements CommentRepository {
         var sql = """
                 SELECT id, text, post_id, created_at
                 FROM comments
-                WHERE post_id = ?
+                WHERE post_id = :postId
                 ORDER BY id
                 """;
-        var fromDb = jdbcTemplate.query(sql, new CommentEntityRowMapper(), postId);
+        var fromDb = namedParameterJdbcTemplate.query(sql, Map.of("postId", postId), new CommentEntityRowMapper());
         log.debug("CommentJdbcRepository::findAllByPostId {} out. Result: {}", postId, fromDb);
         return fromDb;
     }
@@ -42,11 +43,16 @@ public class CommentJdbcRepository implements CommentRepository {
         var sql = """
                 SELECT id, text, post_id, created_at
                 FROM comments
-                WHERE post_id = ? AND id = ?
+                WHERE post_id = :postId AND id = :commentId
                 """;
+
         CommentEntity fromDb;
         try {
-            fromDb = jdbcTemplate.queryForObject(sql, new CommentEntityRowMapper(), postId, commentId);
+            fromDb = namedParameterJdbcTemplate.queryForObject(
+                    sql,
+                    Map.of("postId", postId, "commentId", commentId),
+                    new CommentEntityRowMapper()
+            );
         } catch (EmptyResultDataAccessException exc) {
             fromDb = null;
         }
@@ -60,10 +66,15 @@ public class CommentJdbcRepository implements CommentRepository {
         log.debug("CommentJdbcRepository::save {} in", toBeSaved);
         var sql = """
                 INSERT INTO comments (text, post_id)
-                VALUES (?, ?)
+                VALUES (:text, :postId)
                 RETURNING id, text, post_id, created_at
                 """;
-        var saved = jdbcTemplate.queryForObject(sql, new CommentEntityRowMapper(), toBeSaved.getText(), toBeSaved.getPostId());
+
+        var namedParameters = Map.of(
+                "text", toBeSaved.getText(),
+                "postId", toBeSaved.getPostId()
+        );
+        var saved = namedParameterJdbcTemplate.queryForObject(sql, namedParameters, new CommentEntityRowMapper());
         log.debug("CommentJdbcRepository::save {} out", saved);
         return saved;
     }
@@ -73,14 +84,20 @@ public class CommentJdbcRepository implements CommentRepository {
         log.debug("CommentJdbcRepository::update {} in", toBeUpdated);
         var sql = """
                 UPDATE comments
-                SET text = ?
-                WHERE id = ? AND post_id = ?
+                SET text = :text
+                WHERE id = :commentId AND post_id = :postId
                 RETURNING id, text, post_id, created_at
                 """;
+
+        var namedParameters = Map.of(
+                "text", toBeUpdated.getText(),
+                "commentId", toBeUpdated.getId(),
+                "postId", toBeUpdated.getPostId()
+        );
         CommentEntity updated;
         try {
-            updated = jdbcTemplate.queryForObject(
-                    sql, new CommentEntityRowMapper(), toBeUpdated.getText(), toBeUpdated.getId(), toBeUpdated.getPostId()
+            updated = namedParameterJdbcTemplate.queryForObject(
+                    sql, namedParameters, new CommentEntityRowMapper()
             );
         } catch (EmptyResultDataAccessException exc) {
             updated = null;
@@ -92,8 +109,8 @@ public class CommentJdbcRepository implements CommentRepository {
     @Override
     public int deleteByPostIdAndCommentId(@NonNull Long postId, @NonNull Long commentId) {
         log.debug("CommentJdbcRepository::deleteByPostIdAndCommentId post.id = {}, comment.id = {} in", postId, commentId);
-        var sql = "DELETE FROM comments WHERE id = ? AND post_id = ?";
-        var deletedTotal = jdbcTemplate.update(sql, commentId, postId);
+        var sql = "DELETE FROM comments WHERE id = :commentId AND post_id = :postId";
+        var deletedTotal = namedParameterJdbcTemplate.update(sql, Map.of("postId", postId, "commentId", commentId));
         log.debug("CommentJdbcRepository::deleteByPostIdAndCommentId post.id = {}, comment.id = {} out. Number of deleted rows: {}",
                 postId, commentId, deletedTotal);
         return deletedTotal;
@@ -102,8 +119,8 @@ public class CommentJdbcRepository implements CommentRepository {
     @Override
     public int countPostCommentsTotal(@NonNull Long postId) {
         log.debug("CommentJdbcRepository::countPostCommentsTotal {} in", postId);
-        var sql = "SELECT COUNT(id) FROM comments WHERE post_id = ?";
-        var totalCommentsNumber = jdbcTemplate.queryForObject(sql, Integer.class, postId);
+        var sql = "SELECT COUNT(id) FROM comments WHERE post_id = :postId";
+        var totalCommentsNumber = namedParameterJdbcTemplate.queryForObject(sql, Map.of("postId", postId), Integer.class);
         log.debug("CommentJdbcRepository::countPostCommentsTotal {} out. Result: {}", postId, totalCommentsNumber);
         return totalCommentsNumber != null ? totalCommentsNumber : 0;
     }
