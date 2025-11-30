@@ -34,4 +34,4 @@ build/
 .DS_Store
 # my-blog-back-app
 /db_data/
-/image/
+/images/

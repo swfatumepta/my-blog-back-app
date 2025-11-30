@@ -18,9 +18,15 @@ spring:
     drop-first: false
     enabled: true
 
+  servlet:
+    multipart:
+      enabled: true
+      max-file-size: 1MB
+      max-request-size: 2MB
+
 post:
   image:
-    dir: src/main/resources/images/
+    dir: ./images/
     extension: .jpg
     name:
       pattern: post_id_{0}{1}
