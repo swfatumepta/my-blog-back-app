@@ -8,54 +8,50 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.EmptyResultDataAccessException;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.ResultSetExtractor;
 import org.springframework.jdbc.core.RowMapper;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Repository;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
+@Repository
 @RequiredArgsConstructor
 @Slf4j
-@Repository
 public class PostJdbcRepository implements PostRepository {
 
-    private final JdbcTemplate jdbcTemplate;
+    private final NamedParameterJdbcTemplate namedParameterJdbcTemplate;
 
     @Override
     public PostEntityPage findAll(@NonNull String textFilter, @NonNull List<String> tagsFilter, int offset, int limit) {
         log.debug("PostJdbcRepository::findAll textFragment = {}, tagsFilter = {}, offset = {}, limit = {} in",
                 textFilter, tagsFilter, offset, limit);
-        var textAndTitleSearchPattern = "%" + textFilter + "%";
-        var requiredTags = DbUtil.convertToNativePostgreSqlTextArray(jdbcTemplate, tagsFilter);
         var sql = """
                     -- CTE with filtration results (by title, text and tags)
                     WITH post_ids_filtered_by_text_and_title AS (
                         SELECT id
                         FROM posts
-                        WHERE title ILIKE ? OR text ILIKE ?
+                        WHERE title ILIKE :title OR text ILIKE :text
                     ),
                     tags_filter AS (
                         SELECT id, name, created_at
                         FROM tags
-                        WHERE ? OR name = ANY(?::text[])
+                        WHERE :ignoreTags OR name = ANY(:tags::text[])
                     ),
                     post_ids_filtered_by_tags AS (
                         SELECT pt.post_id
                         FROM post_tag pt
                             JOIN tags_filter tf ON pt.tag_id = tf.id
                         GROUP BY pt.post_id
-                        HAVING ? OR COUNT(DISTINCT pt.tag_id) = ?
+                        HAVING :ignoreTags OR COUNT(DISTINCT pt.tag_id) = :tagsCount
                     ),
                     filtered_posts AS (
                         SELECT pifbtat.id
                         FROM post_ids_filtered_by_text_and_title pifbtat
-                        WHERE ? OR pifbtat.id IN (
+                        WHERE :ignoreTags OR pifbtat.id IN (
                             SELECT pifbt.post_id FROM post_ids_filtered_by_tags pifbt
                         )
                     )
@@ -84,30 +80,21 @@ public class PostJdbcRepository implements PostRepository {
                     LEFT JOIN tags t ON pt.tag_id = t.id
                 GROUP BY p.id, p.title, p.text, p.likes_count, p.created_at
                 ORDER BY p.created_at DESC
-                OFFSET ?
-                LIMIT ?
+                OFFSET :offset
+                LIMIT :limit
                 """;
-        var page = jdbcTemplate.query(
-                sql,
-                new PostEntityPageExtractor(),
-                textAndTitleSearchPattern,
-                textAndTitleSearchPattern,
-                tagsFilter.isEmpty(),   // if true ignore next statement
-                requiredTags,
-                tagsFilter.isEmpty(),   // if true ignore next statement
-                tagsFilter.size(),
-                tagsFilter.isEmpty(),   // if true ignore next statement
-                offset,
-                limit
-        );
-        if (page == null) {
-            page = new PostEntityPage();
+
+        var namedParameters = this.buildFindAllQueryParameters(textFilter, tagsFilter, offset, limit);
+        var postEntityPage = namedParameterJdbcTemplate.query(sql, namedParameters, new PostEntityPageExtractor());
+
+        if (postEntityPage == null) {
+            postEntityPage = new PostEntityPage();
         }
-        page.setCurrentPageNumber(offset);
-        page.setCurrentPageSize(limit);
+        postEntityPage.setCurrentPageNumber(offset);
+        postEntityPage.setCurrentPageSize(limit);
         log.debug("PostJdbcRepository::findAll textFragment = {}, tagsFilter = {}, offset = {}, limit = {} out. Result: {}",
-                textFilter, tagsFilter, offset, limit, page);
-        return page;
+                textFilter, tagsFilter, offset, limit, postEntityPage);
+        return postEntityPage;
     }
 
     @Override
@@ -123,13 +110,13 @@ public class PostJdbcRepository implements PostRepository {
                        COUNT(c.id) AS p_total_comments
                 FROM posts p
                     LEFT JOIN comments c ON p.id = c.post_id
-                WHERE p.id = ?
+                WHERE p.id = :postId
                 GROUP BY p.id, p.title, p.text, p.likes_count, p.created_at
                 ORDER BY p.id
                 """;
         PostEntity fromDb;
         try {
-            fromDb = jdbcTemplate.queryForObject(sql, new PostEntityRowMapper(), postId);
+            fromDb = namedParameterJdbcTemplate.queryForObject(sql, Map.of("postId", postId), new PostEntityRowMapper());
         } catch (EmptyResultDataAccessException exc) {
             fromDb = null;
         }
@@ -142,10 +129,12 @@ public class PostJdbcRepository implements PostRepository {
         log.debug("PostJdbcRepository::save {} in", toBeSaved);
         var sql = """
                 INSERT INTO posts (title, text)
-                VALUES (?, ?)
+                VALUES (:title, :text)
                 RETURNING id p_id, title p_title, text p_text, likes_count p_likes, created_at p_created
                 """;
-        var saved = jdbcTemplate.queryForObject(sql, new PostEntityRowMapper(), toBeSaved.getTitle(), toBeSaved.getText());
+        var saved = namedParameterJdbcTemplate.queryForObject(
+                sql, Map.of("title", toBeSaved.getTitle(), "text", toBeSaved.getText()), new PostEntityRowMapper()
+        );
         log.debug("PostJdbcRepository::save {} out", saved);
         return saved;
     }
@@ -155,15 +144,19 @@ public class PostJdbcRepository implements PostRepository {
         log.debug("PostJdbcRepository::update {} in", toBeUpdated);
         var sql = """
                 UPDATE posts
-                SET title = ?, text = ?
-                WHERE id = ?
+                SET title = :title, text = :text
+                WHERE id = :postId
                 RETURNING id p_id, title p_title, text p_text, likes_count p_likes, created_at p_created
                 """;
+
+        var namedParameters = Map.of(
+                "title", toBeUpdated.getTitle(),
+                "text", toBeUpdated.getText(),
+                "postId", toBeUpdated.getId()
+        );
         PostEntity updated;
         try {
-            updated = jdbcTemplate.queryForObject(
-                    sql, new PostEntityRowMapper(), toBeUpdated.getTitle(), toBeUpdated.getText(), toBeUpdated.getId()
-            );
+            updated = namedParameterJdbcTemplate.queryForObject(sql, namedParameters, new PostEntityRowMapper());
         } catch (EmptyResultDataAccessException exc) {
             updated = null;
         }
@@ -177,12 +170,12 @@ public class PostJdbcRepository implements PostRepository {
         var sql = """
                 UPDATE posts
                 SET likes_count = likes_count + 1
-                WHERE id = ?
+                WHERE id = :postId
                 RETURNING likes_count
                 """;
         Integer likesTotal;
         try {
-            likesTotal = jdbcTemplate.queryForObject(sql, Integer.class, postId);
+            likesTotal = namedParameterJdbcTemplate.queryForObject(sql, Map.of("postId", postId), Integer.class);
         } catch (EmptyResultDataAccessException exc) {
             likesTotal = null;
         }
@@ -193,8 +186,8 @@ public class PostJdbcRepository implements PostRepository {
     @Override
     public int deleteById(@NonNull Long postId) {
         log.debug("PostJdbcRepository::deleteById {} in", postId);
-        var sql = "DELETE FROM posts WHERE id = ?";
-        var deletedTotal = jdbcTemplate.update(sql, postId);
+        var sql = "DELETE FROM posts WHERE id = :postId";
+        var deletedTotal = namedParameterJdbcTemplate.update(sql, Map.of("postId", postId));
         log.debug("PostJdbcRepository::deleteById {} out. Number of deleted rows: {}", postId, deletedTotal);
         return deletedTotal;
     }
@@ -202,10 +195,31 @@ public class PostJdbcRepository implements PostRepository {
     @Override
     public boolean isExistById(@NonNull Long postId) {
         log.debug("PostJdbcRepository::isExistById {} in", postId);
-        var sql = "SELECT EXISTS(SELECT 1 FROM posts WHERE id = ?)";
-        Boolean exists = jdbcTemplate.queryForObject(sql, Boolean.class, postId);
+        var sql = "SELECT EXISTS(SELECT 1 FROM posts WHERE id = :postId)";
+        Boolean exists = namedParameterJdbcTemplate.queryForObject(sql, Map.of("postId", postId), Boolean.class);
         log.debug("PostJdbcRepository::isExistById {} out. Result: {}", postId, Boolean.TRUE.equals(exists));
         return Boolean.TRUE.equals(exists);
+    }
+
+    private Map<String, Object> buildFindAllQueryParameters(String textFilter,
+                                                            List<String> tagsFilter,
+                                                            int offset,
+                                                            int limit) {
+        var textAndTitleSearchPattern = "%" + textFilter + "%";
+        var requiredTags = DbUtil.convertToNativePostgreSqlTextArray(
+                namedParameterJdbcTemplate.getJdbcTemplate(), tagsFilter
+        );
+        return Map.of(
+                "text", textAndTitleSearchPattern,
+                "title", textAndTitleSearchPattern,
+
+                "ignoreTags", tagsFilter.isEmpty(),
+                "tagsCount", tagsFilter.size(),
+                "tags", requiredTags,
+
+                "offset", offset,
+                "limit", limit
+        );
     }
 
     private static class PostEntityPageExtractor implements ResultSetExtractor<PostEntityPage> {
