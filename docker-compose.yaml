@@ -10,7 +10,7 @@ services:
       - "8080:8080"
       - "8000:8000"
     volumes:
-      - ./image:/usr/local/tomcat/src/main/resources/images
+      - ./images:/app/images
     networks:
       - ftmpt-blog
     depends_on:
