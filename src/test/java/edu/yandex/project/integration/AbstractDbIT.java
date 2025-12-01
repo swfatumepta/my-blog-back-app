@@ -1,8 +1,10 @@
 package edu.yandex.project.integration;
 
-import edu.yandex.project.integration.config.testcontainers.ext.DbSetupExtension;
-import org.junit.jupiter.api.extension.ExtendWith;
+import edu.yandex.project.integration.config.testcontainers.ITPostgreSQLContainer;
+import org.springframework.boot.testcontainers.context.ImportTestcontainers;
+import org.testcontainers.junit.jupiter.Testcontainers;
 
-@ExtendWith(DbSetupExtension.class)
+@Testcontainers
+@ImportTestcontainers(ITPostgreSQLContainer.class)
 public abstract class AbstractDbIT {
 }
