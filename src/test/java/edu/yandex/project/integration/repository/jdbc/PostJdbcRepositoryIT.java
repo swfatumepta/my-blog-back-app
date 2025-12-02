@@ -1,26 +1,18 @@
 package edu.yandex.project.integration.repository.jdbc;
 
 import edu.yandex.project.entity.PostEntity;
-import edu.yandex.project.repository.jdbc.PostJdbcRepository;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.jdbc.Sql;
-import org.springframework.test.context.jdbc.SqlGroup;
 
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.AFTER_TEST_METHOD;
-import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TEST_METHOD;
 
 @Tag("Integration tests for PostJdbcJdbcRepository")
 class PostJdbcRepositoryIT extends AbstractJdbcRepositoryIT {
-
-    @Autowired
-    private PostJdbcRepository postJdbcRepository;
 
     @Test
     void findAll_emptyResult_noExceptionThrown() {
@@ -45,7 +37,6 @@ class PostJdbcRepositoryIT extends AbstractJdbcRepositoryIT {
         assertTrue(actualResult.isEmpty());
     }
 
-    @Sql(executionPhase = AFTER_TEST_METHOD, scripts = "classpath:sql/clean-env.sql")
     @Test
     void save_success_updatesPostAndReturnAllRequiredFields() {
         // given
@@ -74,14 +65,11 @@ class PostJdbcRepositoryIT extends AbstractJdbcRepositoryIT {
         assertTrue(actualResult.isEmpty());
     }
 
-    @SqlGroup({
-            @Sql(executionPhase = BEFORE_TEST_METHOD, scripts = "classpath:sql/repository/post/insert-single-post.sql"),
-            @Sql(executionPhase = AFTER_TEST_METHOD, scripts = "classpath:sql/clean-env.sql")
-    })
+    @Sql("classpath:sql/repository/post/insert-single-post.sql")
     @Test
     void update_successfulUpdate_returnAllRequiredFields() {
         // given
-        var toBeUpdated = postJdbcRepository.findById(1L).orElseThrow();
+        var toBeUpdated = postJdbcRepository.findById(DEFAULT_ID).orElseThrow();
         var newTitle = "new title";
         var newText = "new text";
         // when
@@ -119,14 +107,11 @@ class PostJdbcRepositoryIT extends AbstractJdbcRepositoryIT {
         assertTrue(actualResult.isEmpty());
     }
 
-    @SqlGroup({
-            @Sql(executionPhase = BEFORE_TEST_METHOD, scripts = "classpath:sql/repository/post/insert-single-post.sql"),
-            @Sql(executionPhase = AFTER_TEST_METHOD, scripts = "classpath:sql/clean-env.sql")
-    })
+    @Sql("classpath:sql/repository/post/insert-single-post.sql")
     @Test
     void incrementLikesCountById_success_incrementsLikeAndReturnLatestState() {
         // given
-        var toBeUpdated = postJdbcRepository.findById(1L).orElseThrow();
+        var toBeUpdated = postJdbcRepository.findById(DEFAULT_ID).orElseThrow();
         // when
         var afterUpdateReturnValue = postJdbcRepository.incrementLikesCountById(toBeUpdated.getId()).orElseThrow();
         var afterUpdate = postJdbcRepository.findById(toBeUpdated.getId()).orElseThrow();
@@ -156,14 +141,11 @@ class PostJdbcRepositoryIT extends AbstractJdbcRepositoryIT {
         assertEquals(0, deletedRows);
     }
 
-    @SqlGroup({
-            @Sql(executionPhase = BEFORE_TEST_METHOD, scripts = "classpath:sql/repository/post/insert-single-post.sql"),
-            @Sql(executionPhase = AFTER_TEST_METHOD, scripts = "classpath:sql/clean-env.sql")
-    })
+    @Sql("classpath:sql/repository/post/insert-single-post.sql")
     @Test
     void deleteById_success_existentPostDeletedFromDb() {
         // given
-        var toBeDeleted = postJdbcRepository.findById(1L).orElseThrow();
+        var toBeDeleted = postJdbcRepository.findById(DEFAULT_ID).orElseThrow();
         // when
         int deletedRows = postJdbcRepository.deleteById(toBeDeleted.getId());
         // then

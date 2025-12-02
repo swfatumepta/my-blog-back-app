@@ -1,0 +1,13 @@
+spring:
+  liquibase:
+    change-log: classpath:db/changelog/db.changelog-master-test.xml
+    enabled: true
+  datasource:
+    url: jdbc:postgresql://localhost:5433/ya_blog_test
+    username: test
+    password: test
+    driver-class-name: org.postgresql.Driver
+
+post:
+  image:
+    dir: src/test/resources/image/to_be_deleted

@@ -1,7 +1,6 @@
 package edu.yandex.project.integration.controller;
 
 import edu.yandex.project.controller.dto.post.*;
-import edu.yandex.project.factory.PostFactory;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -23,6 +22,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @Tag("Integration tests for PostController")
 public class PostControllerIT extends AbstractControllerIT {
+    private final static long SINGLE_POST_ID = 999;
     private final static String POSTS_ROOT = "/api/posts";
 
     @SqlGroup({
@@ -206,11 +206,11 @@ public class PostControllerIT extends AbstractControllerIT {
     @Test
     void updatePost_inCasePostExists_success() throws Exception {
         // given
-        var uri = POSTS_ROOT + "/" + 1;
+        var uri = POSTS_ROOT + "/" + SINGLE_POST_ID;
 
         var responseBeforeUpdate = mockMvc.perform(get(uri))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").value(1))
+                .andExpect(jsonPath("$.id").value(SINGLE_POST_ID))
                 .andExpect(jsonPath("$.title").value("Тестовый заголовок 1"))
                 .andExpect(jsonPath("$.text").value("Это текст первого тестового поста."))
                 .andExpect(jsonPath("$.likesCount").value(42))
@@ -264,7 +264,7 @@ public class PostControllerIT extends AbstractControllerIT {
     @Test
     void addPostLike_inCasePostExists_success() throws Exception {
         // given
-        var uriGET = POSTS_ROOT + "/" + 1;
+        var uriGET = POSTS_ROOT + "/" + SINGLE_POST_ID;
 
         var response = mockMvc.perform(get(uriGET))
                 .andExpect(status().isOk())
@@ -295,7 +295,7 @@ public class PostControllerIT extends AbstractControllerIT {
     @Test
     void deletePost_inCasePostExists_success() throws Exception {
         // given
-        var postIdToBeDeleted = "1";
+        var postIdToBeDeleted = SINGLE_POST_ID;
         var uri = POSTS_ROOT + "/" + postIdToBeDeleted;
 
         mockMvc.perform(get(uri))
@@ -310,9 +310,9 @@ public class PostControllerIT extends AbstractControllerIT {
         mockMvc.perform(get(uri)).andExpect(status().isNotFound());
     }
 
-    private boolean isValidPostText(String postText) {
-        int maxPostTextSize = webApplicationContext.getBean(PostFactory.class).getTextMaxSize();
-        var textLengthOverlimitStub = webApplicationContext.getBean(PostFactory.class).getTextLengthOverlimitStub();
+    protected boolean isValidPostText(String postText) {
+        int maxPostTextSize = postFactory.getTextMaxSize();
+        var textLengthOverlimitStub = postFactory.getTextLengthOverlimitStub();
         boolean hasAllowedLength = postText.length() < maxPostTextSize;
         boolean isCut = postText.contains(textLengthOverlimitStub)
                 && (postText.length() == maxPostTextSize + textLengthOverlimitStub.length());

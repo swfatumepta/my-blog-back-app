@@ -25,7 +25,6 @@ public class DbUtil {
             .registerModule(new JavaTimeModule())
             .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
 
-
     public static Array convertToNativePostgreSqlTextArray(@NonNull JdbcTemplate jdbcTemplate,
                                                            @NonNull Collection<String> toBeConverted) {
         return jdbcTemplate.execute((ConnectionCallback<Array>) connection -> {

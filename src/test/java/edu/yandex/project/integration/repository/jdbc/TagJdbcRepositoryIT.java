@@ -1,24 +1,16 @@
 package edu.yandex.project.integration.repository.jdbc;
 
-import edu.yandex.project.repository.jdbc.TagJdbcRepository;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.jdbc.Sql;
-import org.springframework.test.context.jdbc.SqlGroup;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.AFTER_TEST_METHOD;
-import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TEST_METHOD;
 
 @Tag("Integration tests for TagJdbcRepository")
 class TagJdbcRepositoryIT extends AbstractJdbcRepositoryIT {
-
-    @Autowired
-    private TagJdbcRepository tagJdbcRepository;
 
     @Test
     void createPostTags_emptyTagsList_noTagsCreated() {
@@ -31,10 +23,7 @@ class TagJdbcRepositoryIT extends AbstractJdbcRepositoryIT {
         assertTrue(actualResult.isEmpty());
     }
 
-    @SqlGroup({
-            @Sql(executionPhase = BEFORE_TEST_METHOD, scripts = "classpath:sql/repository/tag/insert-single-post-without-tags.sql"),
-            @Sql(executionPhase = AFTER_TEST_METHOD, scripts = "classpath:sql/clean-env.sql")
-    })
+    @Sql("classpath:sql/repository/tag/insert-single-post-without-tags.sql")
     @Test
     void createPostTags_newTags_successfullyCreatedAndLinked() {
         // given
@@ -74,10 +63,7 @@ class TagJdbcRepositoryIT extends AbstractJdbcRepositoryIT {
         assertTrue(actualResult.isEmpty());
     }
 
-    @SqlGroup({
-            @Sql(executionPhase = BEFORE_TEST_METHOD, scripts = "classpath:sql/repository/tag/insert-single-post-with-tags.sql"),
-            @Sql(executionPhase = AFTER_TEST_METHOD, scripts = "classpath:sql/clean-env.sql")
-    })
+    @Sql("classpath:sql/repository/tag/insert-single-post-with-tags.sql")
     @Test
     void findAllByPostId_withExistingTags_returnsCorrectTags() {
         // given
@@ -90,10 +76,7 @@ class TagJdbcRepositoryIT extends AbstractJdbcRepositoryIT {
         actualResult.forEach(tag -> assertTrue(expectedPostTags.contains(tag.getName())));
     }
 
-    @SqlGroup({
-            @Sql(executionPhase = BEFORE_TEST_METHOD, scripts = "classpath:sql/repository/tag/insert-single-post-with-tags.sql"),
-            @Sql(executionPhase = AFTER_TEST_METHOD, scripts = "classpath:sql/clean-env.sql")
-    })
+    @Sql("classpath:sql/repository/tag/insert-single-post-with-tags.sql")
     @Test
     void unlinkAllTagsFromPost_success_allTagsUnlinked() {
         // given
