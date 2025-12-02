@@ -6,6 +6,7 @@ services:
       - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/ya_blog
       - SPRING_DATASOURCE_USERNAME=root
       - SPRING_DATASOURCE_PASSWORD=root
+      - ENABLE_DEBUG=${ENABLE_DEBUG:-false}
     ports:
       - "8080:8080"
       - "8000:8000"

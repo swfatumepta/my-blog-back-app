@@ -1,6 +1,10 @@
 #!/bin/sh
 
-exec java -agentlib:jdwp=transport=dt_socket,server=y,address=*:8000,suspend=n -jar app.jar
+if [ "$ENABLE_DEBUG" = "true" ]; then
+  exec java -agentlib:jdwp=transport=dt_socket,server=y,address=*:8000,suspend=n -jar app.jar
+else
+  exec java -jar app.jar
+fi
 
 # КОММЕНТАРИИ ПО JVM И JDWP:
 #
